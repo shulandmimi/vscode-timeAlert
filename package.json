@@ -11,7 +11,9 @@
   ],
   "activationEvents": [
     "onCommand:timealert.addTask",
-    "onCommand:timealert.delTask"
+    "onCommand:timealert.delTask",
+    "onView:TimeAlert",
+    "*"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -24,7 +26,24 @@
         "command": "timealert.delTask",
         "title": "delTask"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "TimeAlert",
+          "title": "任务",
+          "icon": "/public/image/task.svg"
+        }
+      ]
+    },
+    "views": {
+      "TimeAlert": [
+        {
+          "id": "TimeAlert",
+          "name": "任务列表"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",

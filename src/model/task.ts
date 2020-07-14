@@ -17,7 +17,9 @@ export default class Task {
     }
 }
 
-export interface TaskJson{
+export interface TaskJson {
     total: number;
-    tasks: Task[];
+    tasks: {
+        [key: string]: Task;
+    };
 }

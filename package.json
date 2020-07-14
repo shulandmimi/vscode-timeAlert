@@ -12,6 +12,7 @@
   "activationEvents": [
     "onCommand:timealert.addTask",
     "onCommand:timealert.delTask",
+    "onCommand:timealert.modifyTask",
     "onView:TimeAlert",
     "*"
   ],
@@ -23,8 +24,20 @@
         "title": "addTask"
       },
       {
+        "command": "timealert.modifyTask",
+        "title": "修改",
+        "icon": {
+          "light": "public/image/dark/icon/inlineModify.svg",
+          "dark": "public/image/dark/icon/inlineModify.svg"
+        }
+      },
+      {
         "command": "timealert.delTask",
-        "title": "delTask"
+        "title": "delTask",
+        "icon": {
+          "dark": "public/image/dark/icon/inlineDelete.svg",
+          "light": "public/image/dark/icon/inlineDelete.svg"
+        }
       }
     ],
     "viewsContainers": {
@@ -41,6 +54,20 @@
         {
           "id": "TimeAlert",
           "name": "任务列表"
+        }
+      ]
+    },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "timealert.modifyTask",
+          "alt": "修改",
+          "group": "inline"
+        },
+        {
+          "command": "timealert.delTask",
+          "alt": "删除",
+          "group": "inline"
         }
       ]
     }

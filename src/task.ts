@@ -4,12 +4,14 @@ import { join } from 'path';
 
 import TaskModel, { TaskJson } from './model/task';
 import { addNotice } from './notice';
+import createHash from './util/createHash';
+import { downloadAndUnzipVSCode } from 'vscode-test';
 
 const minute = 1000 * 60;
 
 let taskCache: TaskJson | undefined;
 
-const initialTaskJson = JSON.stringify({ tasks: [], total: 0 });
+const initialTaskJson = JSON.stringify({ tasks: {}, total: 0 });
 
 export async function addTask() {
     const res = await window.showInputBox({
@@ -19,8 +21,13 @@ export async function addTask() {
 
     const task = new TaskModel(res, minute * 5, '');
     try {
-        writeTask(taskJson => {
-            taskJson.tasks.push(task);
+        writeTask(async (taskJson: TaskJson) => {
+            const hash = await createHash(task.title);
+            if (!!taskJson.tasks[hash]) {
+                const confirm = await window.showInformationMessage('任务已经存在，需要覆盖吗', '确定', '取消');
+                if (confirm === '取消') return false;
+            }
+            taskJson.tasks[hash] = task;
             taskJson.total++;
             return taskJson;
         });
@@ -31,20 +38,41 @@ export async function addTask() {
     }
 }
 
-export function delTask() {}
+export function delTask() {
+    console.log('删除');
+}
 
-export function getTaskList() {}
+export function modifyTask() {
+    console.log('修改');
+}
 
-export function getTask() {}
+export async function getTaskList() {
+    const { tasks } = await readTask();
+    const keys = Object.keys(tasks);
+    const classify: {
+        [key: number]: TaskModel[];
+    } = {};
+    for (let i = 0; i < keys.length; i++) {
+        const task = tasks[keys[i]];
+        (classify[task.finish] || (classify[task.finish] = [])).push(task);
+    }
+    return classify;
+}
+
+export async function getTask(id: string) {
+    const { tasks } = await readTask();
+    return tasks[id];
+}
 
 const TaskFilePath = join(__dirname, './store/task.json');
 
-async function writeTask(cb: (taskJson: TaskJson) => Promise<TaskJson> | TaskJson) {
+async function writeTask(cb: (taskJson: TaskJson) => Promise<TaskJson | false> | TaskJson | false) {
     await ensureFile(TaskFilePath);
     let taskJson = taskCache || (await readTask());
     if (taskJson !== taskCache) taskCache = taskJson;
-    taskJson = await cb(taskJson);
-    return await outputFile(TaskFilePath, JSON.stringify(taskJson, null, 4));
+    const json = await cb(taskJson);
+    if (!json) return false;
+    return await outputFile(TaskFilePath, JSON.stringify(json, null, 4));
 }
 
 async function readTask(): Promise<TaskJson> {
@@ -54,10 +82,8 @@ async function readTask(): Promise<TaskJson> {
 }
 
 async function noticeTask() {
-    const { tasks, total } = await readTask();
-    for (let i = 0; i < total; i++) {
-        console.log(tasks[i].title, ' ', 'noticeed');
-        window.showInformationMessage(tasks[i].title);
-    }
+    const { tasks } = await readTask();
+    const key = Object.keys(tasks);
+    for (let i = 0; i < key.length; i++) window.showInformationMessage(tasks[key[i]].title);
 }
 addNotice(noticeTask);

@@ -7,6 +7,7 @@ export default class TaskDataProvider implements TreeDataProvider<TreeItem> {
     }
 
     getTreeItem(ele: TreeItem) {
+        const item = new TreeItem('123');
         return ele;
     }
 }

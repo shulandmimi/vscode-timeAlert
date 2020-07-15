@@ -18,11 +18,10 @@ export async function addTask() {
         placeHolder: '请输入一个任务',
     });
     if (!res) return;
-
-    const task = new TaskModel(res, minute * 5, '');
+    const hash = await createHash(res);
+    const task = new TaskModel(res, minute * 5, '', hash);
     try {
         writeTask(async (taskJson: TaskJson) => {
-            const hash = await createHash(task.title);
             if (!!taskJson.tasks[hash]) {
                 const confirm = await window.showInformationMessage('任务已经存在，需要覆盖吗', '确定', '取消');
                 if (confirm === '取消') return false;
@@ -38,11 +37,11 @@ export async function addTask() {
     }
 }
 
-export function delTask() {
+export function delTask(task: TaskModel) {
     console.log('删除');
 }
 
-export function modifyTask() {
+export function modifyTask(task: TaskModel) {
     console.log('修改');
 }
 

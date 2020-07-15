@@ -61,13 +61,13 @@
       "view/item/context": [
         {
           "command": "timealert.modifyTask",
-          "alt": "修改",
-          "group": "inline"
+          "group": "inline",
+          "when": "viewItem == undone"
         },
         {
           "command": "timealert.delTask",
-          "alt": "删除",
-          "group": "inline"
+          "group": "inline",
+          "when": "viewItem == undone"
         }
       ]
     }

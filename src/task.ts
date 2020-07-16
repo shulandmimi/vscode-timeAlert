@@ -37,12 +37,43 @@ export async function addTask() {
     }
 }
 
-export function delTask(task: TaskModel) {
-    console.log('删除');
+export async function delTask(task: TaskModel) {
+    const { hash } = task;
+    writeTask((taskJson: TaskJson) => {
+        const { tasks, total } = taskJson;
+        delete tasks[hash];
+        return {
+            tasks,
+            total: total - 1,
+        };
+    });
 }
 
-export function modifyTask(task: TaskModel) {
-    console.log('修改');
+export async function modifyTask(task: TaskModel) {
+    const { hash, title } = task;
+    const value = await window.showInputBox({
+        placeHolder: '请输入修改后的内容',
+        value: title,
+        validateInput(value) {
+            if (value === title) return '和修改前内容一样，请修改后提交';
+            if (!value) return '输入不能为空';
+        },
+    });
+    if (!value) return;
+
+    const newHash = await createHash(value);
+    console.log(newHash);
+    await writeTask(taskJson => {
+        const { tasks } = taskJson;
+        const task = tasks[hash];
+        delete tasks[hash];
+        task.updateTime = Date.now();
+        task.title = value;
+        task.hash = newHash;
+        tasks[newHash] = task;
+        console.log(taskJson);
+        return taskJson;
+    });
 }
 
 export async function getTaskList() {
@@ -65,13 +96,14 @@ export async function getTask(id: string) {
 
 const TaskFilePath = join(__dirname, './store/task.json');
 
-async function writeTask(cb: (taskJson: TaskJson) => Promise<TaskJson | false> | TaskJson | false) {
+async function writeTask(cb: (taskJson: TaskJson) => Promise<TaskJson | false> | TaskJson | false): Promise<boolean> {
     await ensureFile(TaskFilePath);
     let taskJson = taskCache || (await readTask());
     if (taskJson !== taskCache) taskCache = taskJson;
     const json = await cb(taskJson);
     if (!json) return false;
-    return await outputFile(TaskFilePath, JSON.stringify(json, null, 4));
+    await outputFile(TaskFilePath, JSON.stringify(json, null, 4));
+    return true;
 }
 
 async function readTask(): Promise<TaskJson> {

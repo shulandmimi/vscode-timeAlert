@@ -1,7 +1,6 @@
-import { TreeDataProvider, TreeItem, Uri } from 'vscode';
+import { TreeDataProvider, TreeItem, EventEmitter, Disposable } from 'vscode';
 import { getTaskList } from '../task';
 import TaskModel from '../model/task';
-import { ifError } from 'assert';
 
 let tasks: { [key: string]: TaskModel[] };
 
@@ -33,6 +32,12 @@ export default class TaskDataProvider implements TreeDataProvider<TaskModel | st
         this.init();
     }
 
+    protected _onDidChangeTreeData = new EventEmitter<TaskModel | string>();
+
+    get onDidChangeTreeData() {
+        return this._onDidChangeTreeData.event;
+    }
+
     async init() {
         tasks = await getTaskList();
     }
@@ -48,13 +53,13 @@ export default class TaskDataProvider implements TreeDataProvider<TaskModel | st
 
     getTreeItem(task: TaskModel | string) {
         if (typeof task === 'string') return new TreeItem(task, 1);
-        const { title, updateTime, hash } = task;
+        const { title, updateTime, hash, remark } = task;
         const tree = new TreeItem(title, 0);
-        tree.tooltip = `最后更新时间: ${new Date(updateTime).toLocaleString()}`;
+        tree.tooltip = `最后更新时间: ${new Date(updateTime).toLocaleString()}\n\n${remark}`;
         tree.contextValue = contextValue[task.finish];
         tree.id = hash;
-        console.log(Uri.parse('/d:/sources/ide/extention/timealert/src/model/task.ts'));
-        tree.resourceUri = Uri.parse('/d:/sources/ide/extention/timealert/src/model/task.ts');
         return tree;
     }
+
+    refersh() {}
 }

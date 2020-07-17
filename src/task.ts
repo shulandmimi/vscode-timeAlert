@@ -5,7 +5,7 @@ import { join } from 'path';
 import TaskModel, { TaskJson } from './model/task';
 import { addNotice } from './notice';
 import createHash from './util/createHash';
-import { downloadAndUnzipVSCode } from 'vscode-test';
+import TaskDataProvider from './explorer/TreeDataProvider';
 
 const minute = 1000 * 60;
 
@@ -62,7 +62,6 @@ export async function modifyTask(task: TaskModel) {
     if (!value) return;
 
     const newHash = await createHash(value);
-    console.log(newHash);
     await writeTask(taskJson => {
         const { tasks } = taskJson;
         const task = tasks[hash];
@@ -71,9 +70,24 @@ export async function modifyTask(task: TaskModel) {
         task.title = value;
         task.hash = newHash;
         tasks[newHash] = task;
-        console.log(taskJson);
         return taskJson;
     });
+    TaskDataProvider.refersh();
+}
+
+export async function taskFinish(task: TaskModel) {
+    const { hash } = task;
+    await writeTask((taskJson: TaskJson) => {
+        const { tasks, total } = taskJson;
+        const taskItem = tasks[hash];
+        taskItem.finish = 0;
+        taskItem.finishTime = Date.now();
+        return {
+            tasks,
+            total: total - 1,
+        };
+    });
+    TaskDataProvider.refersh();
 }
 
 export async function getTaskList() {

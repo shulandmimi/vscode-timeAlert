@@ -10,9 +10,6 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:timealert.addTask",
-    "onCommand:timealert.delTask",
-    "onCommand:timealert.modifyTask",
     "onView:TimeAlert",
     "*"
   ],
@@ -21,11 +18,15 @@
     "commands": [
       {
         "command": "timealert.addTask",
-        "title": "addTask"
+        "title": "添加任务",
+        "icon": {
+          "dark": "public/image/dark/icon/addTask.svg",
+          "light": "public/image/dark/icon/addTask.svg"
+        }
       },
       {
         "command": "timealert.modifyTask",
-        "title": "修改",
+        "title": "修改任务",
         "icon": {
           "light": "public/image/dark/icon/inlineModify.svg",
           "dark": "public/image/dark/icon/inlineModify.svg"
@@ -33,10 +34,26 @@
       },
       {
         "command": "timealert.delTask",
-        "title": "delTask",
+        "title": "删除任务",
         "icon": {
           "dark": "public/image/dark/icon/inlineDelete.svg",
           "light": "public/image/dark/icon/inlineDelete.svg"
+        }
+      },
+      {
+        "command": "timealert.refersh",
+        "title": "刷新",
+        "icon": {
+          "dark": "public/image/dark/icon/refersh.svg",
+          "light": "public/image/dark/icon/refersh.svg"
+        }
+      },
+      {
+        "command": "timealert.taskFinish",
+        "title": "完成",
+        "icon": {
+          "dark": "public/image/dark/icon/taskFinish.svg",
+          "light": "public/image/dark/icon/taskFinish.svg"
         }
       }
     ],
@@ -58,7 +75,22 @@
       ]
     },
     "menus": {
+      "view/title": [
+        {
+          "command": "timealert.addTask",
+          "group": "navigation"
+        },
+        {
+          "command": "timealert.refersh",
+          "group": "navigation"
+        }
+      ],
       "view/item/context": [
+        {
+          "command": "timealert.taskFinish",
+          "group": "inline",
+          "when": "viewItem == undone"
+        },
         {
           "command": "timealert.modifyTask",
           "group": "inline",

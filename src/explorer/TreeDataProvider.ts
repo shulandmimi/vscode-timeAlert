@@ -27,23 +27,17 @@ const contextValue = {
     '2': 'delay',
 };
 
-export default class TaskDataProvider implements TreeDataProvider<TaskModel | string> {
-    constructor() {
-        this.init();
-    }
-
-    protected _onDidChangeTreeData = new EventEmitter<TaskModel | string>();
+class TaskDataProvider implements TreeDataProvider<TaskModel | string> {
+    protected _onDidChangeTreeData = new EventEmitter<TaskModel | string | undefined>();
 
     get onDidChangeTreeData() {
         return this._onDidChangeTreeData.event;
     }
 
-    async init() {
-        tasks = await getTaskList();
-    }
-
-    getChildren(ele: TaskModel | string) {
+    getChildren(ele?: TaskModel | string) {
+        console.log(ele);
         if (!ele) {
+            if (!tasks) this.refershTask();
             const title = Object.keys(rawTitle);
             return title.map(item => key2title[item]);
         }
@@ -61,5 +55,16 @@ export default class TaskDataProvider implements TreeDataProvider<TaskModel | st
         return tree;
     }
 
-    refersh() {}
+    async refersh() {
+        await this.refershTask();
+        console.log('fire');
+        this._onDidChangeTreeData.fire(undefined);
+    }
+
+    async refershTask() {
+        tasks = await getTaskList();
+        return tasks;
+    }
 }
+
+export default new TaskDataProvider();

@@ -9,6 +9,11 @@
   "categories": [
     "Other"
   ],
+  "publisher": "vscode-timealert",
+  "repository": {
+    "type": "git",
+    "directory": "https://github.com/shulandmimi/vscode-timeAlert"
+  },
   "activationEvents": [
     "onView:TimeAlert",
     "onWebviewPanel:view",

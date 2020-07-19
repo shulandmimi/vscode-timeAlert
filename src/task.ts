@@ -6,6 +6,9 @@ import TaskModel, { TaskJson } from './model/task';
 import { addNotice } from './notice';
 import createHash from './util/createHash';
 import TaskDataProvider from './explorer/TreeDataProvider';
+import TaskWebview from './explorer/webview';
+import createTaskTemplate from './webview/task/remark';
+import { extensionContext } from './extension';
 
 const minute = 1000 * 60;
 
@@ -21,7 +24,7 @@ export async function addTask() {
     const hash = await createHash(res);
     const task = new TaskModel(res, minute * 5, '', hash);
     try {
-        writeTask(async (taskJson: TaskJson) => {
+        await writeTask(async (taskJson: TaskJson) => {
             if (!!taskJson.tasks[hash]) {
                 const confirm = await window.showInformationMessage('任务已经存在，需要覆盖吗', '确定', '取消');
                 if (confirm === '取消') return false;
@@ -31,6 +34,7 @@ export async function addTask() {
             return taskJson;
         });
         window.showInformationMessage('输入成功');
+        TaskDataProvider.refersh();
     } catch (error) {
         window.showErrorMessage(error.message);
         console.log(error);
@@ -39,7 +43,7 @@ export async function addTask() {
 
 export async function delTask(task: TaskModel) {
     const { hash } = task;
-    writeTask((taskJson: TaskJson) => {
+    await writeTask((taskJson: TaskJson) => {
         const { tasks, total } = taskJson;
         delete tasks[hash];
         return {
@@ -47,6 +51,7 @@ export async function delTask(task: TaskModel) {
             total: total - 1,
         };
     });
+    TaskDataProvider.refersh();
 }
 
 export async function modifyTask(task: TaskModel) {
@@ -108,6 +113,18 @@ export async function getTask(id: string) {
     return tasks[id];
 }
 
+export async function showWebview(extensionPath: string, task: TaskModel) {
+    const { title } = task;
+    TaskWebview.createOrShow(extensionPath);
+    const instance = TaskWebview.currentInstance;
+    try {
+        const template = await createTaskTemplate(task);
+        instance?.update(template, `task: ${title}`);
+    } catch (error) {
+        console.log(error, 'error');
+    }
+}
+
 const TaskFilePath = join(__dirname, './store/task.json');
 
 async function writeTask(cb: (taskJson: TaskJson) => Promise<TaskJson | false> | TaskJson | false): Promise<boolean> {
@@ -129,6 +146,20 @@ async function readTask(): Promise<TaskJson> {
 async function noticeTask() {
     const { tasks } = await readTask();
     const key = Object.keys(tasks);
-    for (let i = 0; i < key.length; i++) window.showInformationMessage(tasks[key[i]].title);
+    let count = 3;
+    let index = 0;
+    while (count) {
+        const task = tasks[key[index++]];
+        if (!task) break;
+        if (task.finish === 0) continue;
+        window.showInformationMessage(task.title, '查看').then(async res => {
+            if (!extensionContext) return;
+            if (res === '查看') {
+                const instance = TaskWebview.createOrShow(extensionContext.extensionPath) || TaskWebview.currentInstance;
+                if (!instance) return;
+                instance.update(await createTaskTemplate(task));
+            }
+        });
+    }
 }
 addNotice(noticeTask);

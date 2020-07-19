@@ -35,7 +35,6 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | string> {
     }
 
     getChildren(ele?: TaskModel | string) {
-        console.log(ele);
         if (!ele) {
             if (!tasks) this.refershTask();
             const title = Object.keys(rawTitle);
@@ -46,18 +45,27 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | string> {
     }
 
     getTreeItem(task: TaskModel | string) {
-        if (typeof task === 'string') return new TreeItem(task, 1);
+        if (typeof task === 'string') {
+            const tree = new TreeItem(task, 1);
+            tree.contextValue = 'haveChild';
+            return tree;
+        }
         const { title, updateTime, hash, remark } = task;
         const tree = new TreeItem(title, 0);
         tree.tooltip = `最后更新时间: ${new Date(updateTime).toLocaleString()}\n\n${remark}`;
         tree.contextValue = contextValue[task.finish];
         tree.id = hash;
+        tree.command = {
+            title: '',
+            command: 'timealert.openRemark',
+            tooltip: '',
+            arguments: [task],
+        };
         return tree;
     }
 
     async refersh() {
         await this.refershTask();
-        console.log('fire');
         this._onDidChangeTreeData.fire(undefined);
     }
 

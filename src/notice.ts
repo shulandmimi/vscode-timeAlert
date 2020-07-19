@@ -23,7 +23,6 @@ function flashQueue() {
 
 function loopTick() {
     setTimeout(() => {
-        console.log('正常执行');
         flashQueue();
         loopTick();
     }, 1000 * 60 * 5);

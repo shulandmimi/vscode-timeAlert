@@ -11,6 +11,7 @@
   ],
   "activationEvents": [
     "onView:TimeAlert",
+    "onWebviewPanel:view",
     "*"
   ],
   "main": "./out/extension.js",
@@ -51,6 +52,7 @@
       {
         "command": "timealert.taskFinish",
         "title": "完成",
+        "category": "inline",
         "icon": {
           "dark": "public/image/dark/icon/taskFinish.svg",
           "light": "public/image/dark/icon/taskFinish.svg"
@@ -78,28 +80,28 @@
       "view/title": [
         {
           "command": "timealert.addTask",
-          "group": "navigation"
+          "group": "navigation@1"
         },
         {
           "command": "timealert.refersh",
-          "group": "navigation"
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [
         {
           "command": "timealert.taskFinish",
-          "group": "inline",
+          "group": "inline@1",
           "when": "viewItem == undone"
         },
         {
           "command": "timealert.modifyTask",
-          "group": "inline",
-          "when": "viewItem == undone"
+          "group": "inline@2",
+          "when": "viewItem != haveChild"
         },
         {
           "command": "timealert.delTask",
-          "group": "inline",
-          "when": "viewItem == undone"
+          "group": "inline@3",
+          "when": "viewItem != haveChild"
         }
       ]
     }

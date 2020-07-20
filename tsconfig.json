@@ -2,14 +2,18 @@
 	"compilerOptions": {
 		"module": "commonjs",
 		"target": "es6",
-		"outDir": "out",
 		"sourceMap": true,
-		"rootDir": "src",
+		"rootDir": "./",
 		"strict": true,   /* enable all strict type-checking options */
 		"resolveJsonModule": true,
+		"esModuleInterop": true,
 	},
 	"exclude": [
 		"node_modules",
 		".vscode-test"
+	],
+	"include": [
+		"./build",
+		"./src"
 	]
 }

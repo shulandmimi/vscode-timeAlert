@@ -1,7 +1,7 @@
 import { window } from 'vscode';
 import { readFile } from 'fs-extra';
 import { runInNewContext, createContext } from 'vm';
-import { loadView } from '../../src/util/util';
+import { loadView } from '@/util/util';
 
 interface BashTemplateContext {
     _root?: BashTemplateContext;

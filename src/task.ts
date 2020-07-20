@@ -9,7 +9,7 @@ import createHash from './util/createHash';
 import { getRoot } from './util/util';
 import TaskDataProvider from './explorer/TreeDataProvider';
 import TaskWebview from './explorer/webview';
-import createTaskTemplate from '../webview/task/remark';
+import createTaskTemplate from 'webview/task/remark';
 import { extensionContext } from './extension';
 
 const minute = 1000 * 60;

@@ -7,6 +7,7 @@ export default class Task {
     finish: 0 | 1 | 2; // 0 完成 | 1 未完成 | 2 继续延期 |
     remark: string; //备注
     hash: string; // 随机出来的hash值
+    [key: string]: string | number;
     constructor(title: string, interval: number, remark: string, hash: string) {
         this.title = title;
         this.createTime = Date.now();

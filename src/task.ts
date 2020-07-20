@@ -1,4 +1,4 @@
-import { window } from 'vscode';
+import { window, InputBoxOptions } from 'vscode';
 import { readFile, outputFile, ensureFile } from 'fs-extra';
 import { join } from 'path';
 
@@ -9,7 +9,7 @@ import createHash from './util/createHash';
 import { getRoot } from './util/util';
 import TaskDataProvider from './explorer/TreeDataProvider';
 import TaskWebview from './explorer/webview';
-import createTaskTemplate from 'webview/task/remark';
+import createTaskTemplate from 'root/webview/task/remark';
 import { extensionContext } from './extension';
 
 const minute = 1000 * 60;
@@ -56,27 +56,74 @@ export async function delTask(task: TaskModel) {
     TaskDataProvider.refersh();
 }
 
-export async function modifyTask(task: TaskModel) {
-    const { hash, title } = task;
-    const value = await window.showInputBox({
-        placeHolder: '请输入修改后的内容',
-        value: title,
-        validateInput(value) {
-            if (value === title) return '和修改前内容一样，请修改后提交';
-            if (!value) return '输入不能为空';
-        },
-    });
-    if (!value) return;
+interface SelectOptions{
+    placeHolder: string;
+    label: string;
+    type: string;
+    validateInput?: InputBoxOptions['validateInput'];
+}
 
-    const newHash = await createHash(value);
-    await writeTask(taskJson => {
+interface ModifySelection{
+    title: SelectOptions;
+    remark: SelectOptions;
+    noticeIntervalTime: SelectOptions;
+    [key: string]: SelectOptions;
+}
+const modifySelection: ModifySelection = {
+    title : {
+        placeHolder: '请输入标题',
+        label: '标题',
+        type: 'string',
+    },
+    remark : {
+        placeHolder: '请输入备注',
+        label: '备注',
+        type: 'string',
+    },
+    noticeIntervalTime: {
+        placeHolder: '请输入间隔时间',
+        label: '间隔时间',
+        type: 'number',
+    }
+};
+export async function modifyTask(task: TaskModel) {
+    const { hash } = task;
+    const selectKeys = Object.keys(modifySelection);
+    const selectMap: {[key: string]: string} = {};
+    const selected = await window.showQuickPick(selectKeys.map((item: string) => {
+        const label = modifySelection[item].label;
+        selectMap[label] = item;
+        return label;
+    }), {
+        placeHolder: '请选择一个修改项',
+    });
+    if(!selected) return;
+    const key = selectMap[selected];
+    const selectValue = modifySelection[key];
+    let value: string | undefined;
+    const { placeHolder, type = 'string', validateInput } = selectValue;
+    value = await window.showInputBox({
+        placeHolder: placeHolder,
+        value: task[key].toString(),
+        validateInput,
+    });
+
+    if (typeof value === 'undefined') return;
+    let newValue: string | number = value;
+    if (type === 'number') newValue = Number(value);
+
+    await writeTask(async taskJson => {
         const { tasks } = taskJson;
         const task = tasks[hash];
-        delete tasks[hash];
+
+        if(selected === 'title') {
+            const newHash = await createHash(newValue as string);
+            delete tasks[hash];
+            task.hash = newHash;
+            tasks[newHash] = task;
+        }
         task.updateTime = Date.now();
-        task.title = value;
-        task.hash = newHash;
-        tasks[newHash] = task;
+        task[key] = newValue;
         return taskJson;
     });
     TaskDataProvider.refersh();

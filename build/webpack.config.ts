@@ -54,7 +54,8 @@ const config: Configuration = {
     resolve: {
         extensions: ['.ts', '.js', '.json'],
         alias: {
-            vscode: path.join(root, 'node_modules/@types/vscode'),
+            "@": path.join(root, 'src'),
+            "root": path.join(root),
         },
     },
     stats: {

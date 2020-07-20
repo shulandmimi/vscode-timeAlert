@@ -1,7 +1,7 @@
 import { window } from 'vscode';
 import { readFile } from 'fs-extra';
 import { runInNewContext, createContext } from 'vm';
-import { join } from 'path';
+import { loadView } from '../../src/util/util';
 
 interface BashTemplateContext {
     _root?: BashTemplateContext;
@@ -15,7 +15,7 @@ export function transformTemplate(template: string, inject: object) {
 }
 
 async function createBashTemplate(inject: BashTemplateContext = {}) {
-    const template: string = await readFile(join(__dirname, './base.html'), 'utf8');
+    const template: string = await readFile(loadView('base/base.html'), 'utf8');
     try {
         const root = { ...inject };
         return transformTemplate(template, root);

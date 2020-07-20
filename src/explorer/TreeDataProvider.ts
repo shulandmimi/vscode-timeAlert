@@ -34,14 +34,14 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | string> {
         return this._onDidChangeTreeData.event;
     }
 
-    getChildren(ele?: TaskModel | string) {
+    async getChildren(ele?: TaskModel | string) {
         if (!ele) {
-            if (!tasks) this.refershTask();
+            if (!tasks) await this.refershTask();
             const title = Object.keys(rawTitle);
             return title.map(item => key2title[item]);
         }
         if (typeof ele === 'string') return tasks[key2title[ele]];
-        return;
+        return [];
     }
 
     getTreeItem(task: TaskModel | string) {

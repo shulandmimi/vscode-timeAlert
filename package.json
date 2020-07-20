@@ -113,9 +113,9 @@
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
-    "compile": "tsc -p ./",
+    "compile": "cross-env NODE_ENV=production ts-node build/webpack.config.ts",
     "lint": "eslint src --ext ts",
-    "watch": "nodemon -w src -e .ts,.js,.html --exec ts-node build/webpack.config.ts",
+    "watch": "cross-env NODE_ENV=development ts-node build/webpack.config.ts",
     "pretest": "yarn run compile && yarn run lint",
     "test": "node ./out/test/runTest.js",
     "changelog": "./node_modules/.bin/conventional-changelog -p angular -i CHANGELOG.md -s"
@@ -132,6 +132,7 @@
     "@typescript-eslint/parser": "^2.30.0",
     "conventional-changelog-cli": "^2.0.34",
     "copy-webpack-plugin": "^6.0.3",
+    "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
     "file-loader": "^6.0.0",
     "fork-ts-checker-webpack-plugin": "^5.0.7",

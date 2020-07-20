@@ -2,12 +2,14 @@ import { window } from 'vscode';
 import { readFile, outputFile, ensureFile } from 'fs-extra';
 import { join } from 'path';
 
+import Life from './util/life';
 import TaskModel, { TaskJson } from './model/task';
 import { addNotice } from './notice';
 import createHash from './util/createHash';
+import { getRoot } from './util/util';
 import TaskDataProvider from './explorer/TreeDataProvider';
 import TaskWebview from './explorer/webview';
-import createTaskTemplate from './webview/task/remark';
+import createTaskTemplate from '../webview/task/remark';
 import { extensionContext } from './extension';
 
 const minute = 1000 * 60;
@@ -124,8 +126,8 @@ export async function showWebview(extensionPath: string, task: TaskModel) {
         console.log(error, 'error');
     }
 }
+let TaskFilePath: string;
 
-const TaskFilePath = join(__dirname, './store/task.json');
 
 async function writeTask(cb: (taskJson: TaskJson) => Promise<TaskJson | false> | TaskJson | false): Promise<boolean> {
     await ensureFile(TaskFilePath);
@@ -162,4 +164,9 @@ async function noticeTask() {
         });
     }
 }
-addNotice(noticeTask);
+
+Life.on('created', () => {
+    TaskFilePath = join(getRoot(), 'webview/task.json');
+    addNotice(noticeTask);
+});
+

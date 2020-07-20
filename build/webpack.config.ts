@@ -1,12 +1,16 @@
-import webpack, { ChunkData, Configuration } from 'webpack';
+import webpack, { Configuration } from 'webpack';
 import * as path from 'path';
 import { Options } from 'file-loader';
 import { Options as TsOptions } from 'ts-loader';
 import ForkTsCechkerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 
 const root = process.cwd();
+const mode = process.env.NODE_ENV as Configuration['mode'] || 'development';
+
+console.log('当前环境： ', mode);
+
 const config: Configuration = {
-    mode: 'development',
+    mode,
     output: {
         libraryTarget: 'commonjs2',
         filename: 'extension.js',
@@ -23,7 +27,7 @@ const config: Configuration = {
                         options: {
                             experimentalWatchApi: true,
                             transpileOnly: true,
-                        },
+                        } as TsOptions,
                     },
                 ],
             },
@@ -57,9 +61,11 @@ const config: Configuration = {
         all: false,
         colors: true,
     },
+    watch: mode === 'development',
 };
 
-const compiler = webpack(config, (err, stats) => {
+console.log('开始构建');
+webpack(config, (err, stats) => {
     if (err) throw err;
     console.log(
         stats.toString({
@@ -68,4 +74,5 @@ const compiler = webpack(config, (err, stats) => {
             children: false,
         })
     );
+    console.log('done');
 });

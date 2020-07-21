@@ -57,9 +57,9 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | string> {
         tree.id = hash;
         tree.command = {
             title: '',
-            command: 'timealert.openRemark',
+            command: 'timealert.toLink',
             tooltip: '',
-            arguments: [task],
+            arguments: [task.link[0]],
         };
         return tree;
     }

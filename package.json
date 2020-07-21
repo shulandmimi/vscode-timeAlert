@@ -62,6 +62,15 @@
           "dark": "public/image/dark/icon/taskFinish.svg",
           "light": "public/image/dark/icon/taskFinish.svg"
         }
+      },
+      {
+        "command": "timealert.addLink",
+        "title": "添加link",
+        "category": "inline",
+        "icon": {
+          "dark": "public/image/dark/icon/link.svg",
+          "light": "public/image/dark/icon/link.svg"
+        }
       }
     ],
     "viewsContainers": {
@@ -106,6 +115,11 @@
         {
           "command": "timealert.delTask",
           "group": "inline@3",
+          "when": "viewItem != haveChild"
+        },
+        {
+          "command": "timealert.addLink",
+          "group": "inline@4",
           "when": "viewItem != haveChild"
         }
       ]

@@ -26,7 +26,7 @@ export async function addTask() {
     const hash = await createHash(res);
     const task = new TaskModel(res, minute * 5, '', hash);
     try {
-        await writeTask(async (taskJson: TaskJson) => {
+        const isWrite = await writeTask(async (taskJson: TaskJson) => {
             if (!!taskJson.tasks[hash]) {
                 const confirm = await window.showInformationMessage('任务已经存在，需要覆盖吗', '确定', '取消');
                 if (confirm === '取消') return false;
@@ -35,6 +35,7 @@ export async function addTask() {
             taskJson.total++;
             return taskJson;
         });
+        if (!isWrite) return false;
         window.showInformationMessage('输入成功');
         TaskDataProvider.refersh();
     } catch (error) {
@@ -56,26 +57,26 @@ export async function delTask(task: TaskModel) {
     TaskDataProvider.refersh();
 }
 
-interface SelectOptions{
+interface SelectOptions {
     placeHolder: string;
     label: string;
     type: string;
     validateInput?: InputBoxOptions['validateInput'];
 }
 
-interface ModifySelection{
+interface ModifySelection {
     title: SelectOptions;
     remark: SelectOptions;
     noticeIntervalTime: SelectOptions;
     [key: string]: SelectOptions;
 }
 const modifySelection: ModifySelection = {
-    title : {
+    title: {
         placeHolder: '请输入标题',
         label: '标题',
         type: 'string',
     },
-    remark : {
+    remark: {
         placeHolder: '请输入备注',
         label: '备注',
         type: 'string',
@@ -84,20 +85,23 @@ const modifySelection: ModifySelection = {
         placeHolder: '请输入间隔时间',
         label: '间隔时间',
         type: 'number',
-    }
+    },
 };
 export async function modifyTask(task: TaskModel) {
     const { hash } = task;
     const selectKeys = Object.keys(modifySelection);
-    const selectMap: {[key: string]: string} = {};
-    const selected = await window.showQuickPick(selectKeys.map((item: string) => {
-        const label = modifySelection[item].label;
-        selectMap[label] = item;
-        return label;
-    }), {
-        placeHolder: '请选择一个修改项',
-    });
-    if(!selected) return;
+    const selectMap: { [key: string]: string } = {};
+    const selected = await window.showQuickPick(
+        selectKeys.map((item: string) => {
+            const label = modifySelection[item].label;
+            selectMap[label] = item;
+            return label;
+        }),
+        {
+            placeHolder: '请选择一个修改项',
+        }
+    );
+    if (!selected) return;
     const key = selectMap[selected];
     const selectValue = modifySelection[key];
     let value: string | undefined;
@@ -116,7 +120,7 @@ export async function modifyTask(task: TaskModel) {
         const { tasks } = taskJson;
         const task = tasks[hash];
 
-        if(selected === 'title') {
+        if (selected === 'title') {
             const newHash = await createHash(newValue as string);
             delete tasks[hash];
             task.hash = newHash;
@@ -175,8 +179,7 @@ export async function showWebview(extensionPath: string, task: TaskModel) {
 }
 let TaskFilePath: string;
 
-
-async function writeTask(cb: (taskJson: TaskJson) => Promise<TaskJson | false> | TaskJson | false): Promise<boolean> {
+export async function writeTask(cb: (taskJson: TaskJson) => Promise<TaskJson | false> | TaskJson | false): Promise<boolean> {
     await ensureFile(TaskFilePath);
     let taskJson = taskCache || (await readTask());
     if (taskJson !== taskCache) taskCache = taskJson;

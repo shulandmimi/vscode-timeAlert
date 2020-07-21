@@ -71,6 +71,14 @@
           "dark": "public/image/dark/icon/link.svg",
           "light": "public/image/dark/icon/link.svg"
         }
+      },
+      {
+        "command": "timealert.delLink",
+        "title": "删除link",
+        "icon": {
+          "dark": "public/image/dark/icon/inlineDelete.svg",
+          "light": "public/image/dark/icon/inlineDelete.svg"
+        }
       }
     ],
     "viewsContainers": {
@@ -105,22 +113,27 @@
         {
           "command": "timealert.taskFinish",
           "group": "inline@1",
-          "when": "viewItem == undone"
+          "when": "viewItem =~ /^task undone$/"
         },
         {
           "command": "timealert.modifyTask",
           "group": "inline@2",
-          "when": "viewItem != haveChild"
+          "when": "viewItem =~ /^task/"
         },
         {
           "command": "timealert.delTask",
           "group": "inline@3",
-          "when": "viewItem != haveChild"
+          "when": "viewItem =~ /^task/"
         },
         {
           "command": "timealert.addLink",
           "group": "inline@4",
-          "when": "viewItem != haveChild"
+          "when": "viewItem =~ /^task/"
+        },
+        {
+          "command": "timealert.delLink",
+          "group": "inline@1",
+          "when": "viewItem =~ /^link/"
         }
       ]
     }

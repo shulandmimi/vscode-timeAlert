@@ -1,6 +1,7 @@
-import { TreeDataProvider, TreeItem, EventEmitter, Disposable } from 'vscode';
-import { getTaskList } from '../task';
-import TaskModel from '../model/task';
+import { TreeDataProvider, TreeItem, EventEmitter } from 'vscode';
+import Link from '@/model/link';
+import { getTaskList } from '@/task';
+import TaskModel from '@/model/task';
 
 let tasks: { [key: string]: TaskModel[] };
 
@@ -27,8 +28,8 @@ const contextValue = {
     '2': 'delay',
 };
 
-class TaskDataProvider implements TreeDataProvider<TaskModel | string> {
-    protected _onDidChangeTreeData = new EventEmitter<TaskModel | string | undefined>();
+class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
+    protected _onDidChangeTreeData = new EventEmitter<TaskModel | Link | string | undefined>();
 
     get onDidChangeTreeData() {
         return this._onDidChangeTreeData.event;
@@ -41,26 +42,41 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | string> {
             return title.map(item => key2title[item]);
         }
         if (typeof ele === 'string') return tasks[key2title[ele]];
+        if (ele.hash) return Object.keys(ele.link).map(item => {
+            const newItem = {
+                ...ele.link[item],
+                parent: ele,
+            }
+            return newItem;
+        });
         return [];
     }
 
-    getTreeItem(task: TaskModel | string) {
-        if (typeof task === 'string') {
-            const tree = new TreeItem(task, 1);
-            tree.contextValue = 'haveChild';
+    getTreeItem(task: TaskModel | Link | string) {
+        if ((task as TaskModel).isTask) {
+            const { title, updateTime, hash, remark, link, finish } = task as TaskModel;
+            const tree = new TreeItem(title, Object.keys(link).length === 0 ? 0 : 1);
+            tree.tooltip = `最后更新时间: ${new Date(updateTime).toLocaleString()}\n\n${remark}`;
+            tree.contextValue = `task ${contextValue[finish]}`;
+            tree.id = hash;
             return tree;
         }
-        const { title, updateTime, hash, remark } = task;
-        const tree = new TreeItem(title, 0);
-        tree.tooltip = `最后更新时间: ${new Date(updateTime).toLocaleString()}\n\n${remark}`;
-        tree.contextValue = contextValue[task.finish];
-        tree.id = hash;
-        tree.command = {
-            title: '',
-            command: 'timealert.toLink',
-            tooltip: '',
-            arguments: [task.link[0]],
-        };
+
+        if((task as Link).isLink) {
+            const { file, relative, root, range } = task as Link;
+            const tree = new TreeItem(`${relative || root} ${range[0].line}:${range[0].character}`, 0);
+            tree.command = {
+                command: 'timealert.toLink',
+                arguments: [task],
+                title: '',
+            };
+            tree.contextValue = 'link';
+            tree.tooltip = file;
+            return tree;
+        }
+
+        const tree = new TreeItem(task as string || '', 1);
+        tree.contextValue = 'haveChild';
         return tree;
     }
 

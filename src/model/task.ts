@@ -7,8 +7,9 @@ export default class Task extends Base {
     finish: 0 | 1 | 2; // 0 完成 | 1 未完成 | 2 继续延期 |
     remark: string; //备注
     hash: string; // 随机出来的hash值
-    link: Link[];
-    [key: string]: string | number | Link[];
+    link: { [key: string]: Link };
+    isTask: boolean;
+    [key: string]: string | number | boolean |  { [key: string]: Link };
     constructor(title: string, interval: number, remark: string, hash: string) {
         super();
         this.title = title;
@@ -17,7 +18,8 @@ export default class Task extends Base {
         this.finish = 1;
         this.remark = remark;
         this.hash = hash;
-        this.link = [];
+        this.link = {};
+        this.isTask = true;
     }
 }
 

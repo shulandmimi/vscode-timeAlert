@@ -63,6 +63,7 @@ const config: Configuration = {
         colors: true,
     },
     watch: mode === 'development',
+    devtool: 'inline-source-map',
 };
 
 console.log('开始构建');

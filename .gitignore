@@ -6,3 +6,4 @@ node_modules
 dist
 .gitignore
 webview/task.json
+.gitconfig

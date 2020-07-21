@@ -11,6 +11,7 @@ import TaskDataProvider from './explorer/TreeDataProvider';
 import TaskWebview from './explorer/webview';
 import createTaskTemplate from 'root/webview/task/remark';
 import { extensionContext } from './extension';
+import select from './component/select';
 
 const minute = 1000 * 60;
 
@@ -68,7 +69,6 @@ interface ModifySelection {
     title: SelectOptions;
     remark: SelectOptions;
     noticeIntervalTime: SelectOptions;
-    [key: string]: SelectOptions;
 }
 const modifySelection: ModifySelection = {
     title: {
@@ -89,23 +89,12 @@ const modifySelection: ModifySelection = {
 };
 export async function modifyTask(task: TaskModel) {
     const { hash } = task;
-    const selectKeys = Object.keys(modifySelection);
-    const selectMap: { [key: string]: string } = {};
-    const selected = await window.showQuickPick(
-        selectKeys.map((item: string) => {
-            const label = modifySelection[item].label;
-            selectMap[label] = item;
-            return label;
-        }),
-        {
-            placeHolder: '请选择一个修改项',
-        }
-    );
-    if (!selected) return;
-    const key = selectMap[selected];
-    const selectValue = modifySelection[key];
+
+    const { data, selected, key } = (await select<SelectOptions>(modifySelection, { label: 'label', placeHolder: '请选择一个修改项' })) || {};
+    if (!data || !key || !selected) return;
     let value: string | undefined;
-    const { placeHolder, type = 'string', validateInput } = selectValue;
+
+    const { placeHolder, type = 'string', validateInput } = data;
     value = await window.showInputBox({
         placeHolder: placeHolder,
         value: task[key].toString(),

@@ -1,39 +1,66 @@
-import { window, Position, TextDocument, Range, workspace, Uri, ViewColumn } from 'vscode';
+import { window, Position, Range, workspace, Uri } from 'vscode';
+import path from 'path';
+
+import TaskDataProvider from '@/explorer/TreeDataProvider';
 import TaskModel from '@/model/task';
 import Link from '@/model/link';
 import { writeTask } from './task';
+import createHash from '@/util/createHash';
 
 export async function addLink(task: TaskModel) {
     const { hash } = task;
     if (typeof window.activeTextEditor === 'undefined') return window.showErrorMessage('请进入到一个文件或一个文件中的段落');
     const { selection, document } = window.activeTextEditor;
-    const range = new Range(selection.start, selection.end);
-    const newLink = new Link(document.uri.path, range);
+    const { rootPath } = workspace;
+    const fileUri = document.uri.path;
+    let root = '';
+
+    if (new RegExp(`^${rootPath}`).test(fileUri)) root = rootPath || '';
+
+    const relative = path.relative(path.join(root, root ? '../' : ''), fileUri);
+    const LinkHash = await createHash(`${fileUri}${JSON.stringify([selection.start, selection.end])}`);
+    const newLink = new Link(fileUri, root, relative, [selection.start, selection.end], LinkHash);
 
     await writeTask(taskJson => {
         const { tasks } = taskJson;
-        tasks[hash].link.push(newLink);
+        tasks[hash].link[LinkHash] = newLink;
         return taskJson;
     });
-
+    await TaskDataProvider.refersh();
     window.showInformationMessage('添加链接锚点成功');
 }
 
 export async function toLink(link: Link) {
     if (!link) return;
-    const { range, file } = link;
+    const {
+        range: [start, end],
+        file,
+    } = link;
     const newUri = Uri.file(file);
-    console.log(newUri);
-    const document = await workspace.openTextDocument(newUri);
-    console.log(document, 'document');
+    const statuBar = window.createStatusBarItem(1);
+
+    statuBar.text = 'timealert: 正在打开文件';
+    statuBar.show();
     try {
-        console.log(
-            await window.showTextDocument(document, {
-                preview: false,
-            }),
-            'showTextDOcument'
-        );
+        await window.showTextDocument(newUri, {
+            preview: false,
+            selection: new Range(new Position(start.line, start.character), new Position(end.line, end.character)),
+        });
     } catch (error) {
         console.log(error, 'error');
     }
+    statuBar.hide();
+    statuBar.dispose();
+}
+
+export async function delLink(link: Link) {
+    console.log(link);
+    if(!link || !link.parent) return;
+    const { hash, parent } = link;
+    await writeTask(taskJson => {
+        const { tasks } = taskJson;
+        delete tasks[parent.hash].link[hash];
+        return taskJson;
+    });
+    await TaskDataProvider.refersh();
 }

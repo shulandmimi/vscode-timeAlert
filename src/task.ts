@@ -12,6 +12,7 @@ import TaskWebview from './explorer/webview';
 import createTaskTemplate from 'root/webview/task/remark';
 import { extensionContext } from './extension';
 import select from './component/select';
+import valid, { ValidOptions } from './util/valid';
 
 const minute = 1000 * 60;
 
@@ -58,11 +59,9 @@ export async function delTask(task: TaskModel) {
     TaskDataProvider.refersh();
 }
 
-interface SelectOptions {
+interface SelectOptions extends Partial<ValidOptions> {
     placeHolder: string;
     label: string;
-    type: string;
-    validateInput?: InputBoxOptions['validateInput'];
 }
 
 interface ModifySelection {
@@ -75,11 +74,13 @@ const modifySelection: ModifySelection = {
         placeHolder: '请输入标题',
         label: '标题',
         type: 'string',
+        max: 100,
     },
     remark: {
         placeHolder: '请输入备注',
         label: '备注',
         type: 'string',
+        max: 1000,
     },
     noticeIntervalTime: {
         placeHolder: '请输入间隔时间',
@@ -94,11 +95,11 @@ export async function modifyTask(task: TaskModel) {
     if (!data || !key || !selected) return;
     let value: string | undefined;
 
-    const { placeHolder, type = 'string', validateInput } = data;
+    const { placeHolder, type = 'string', ...validOptions } = data;
     value = await window.showInputBox({
         placeHolder: placeHolder,
         value: task[key].toString(),
-        validateInput,
+        validateInput: valid({ ...validOptions, type, }),
     });
 
     if (typeof value === 'undefined') return;
@@ -208,4 +209,3 @@ Life.on('created', () => {
     TaskFilePath = join(getRoot(), 'webview/task.json');
     addNotice(noticeTask);
 });
-

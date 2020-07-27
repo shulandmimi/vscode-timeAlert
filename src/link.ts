@@ -4,7 +4,7 @@ import path from 'path';
 import TaskDataProvider from '@/explorer/TreeDataProvider';
 import TaskModel from '@/model/task';
 import Link from '@/model/link';
-import { writeTask } from './task';
+import TaskJson from '@/model/taskJson';
 import createHash from '@/util/createHash';
 
 export async function addLink(task: TaskModel) {
@@ -12,16 +12,15 @@ export async function addLink(task: TaskModel) {
     if (typeof window.activeTextEditor === 'undefined') return window.showErrorMessage('请进入到一个文件或一个文件中的段落');
     const { selection, document } = window.activeTextEditor;
     const { rootPath } = workspace;
-    const fileUri = document.uri.path;
+    const fileUri = document.uri.fsPath;
     let root = '';
 
-    if (new RegExp(`^${rootPath}`).test(fileUri)) root = rootPath || '';
+    if (rootPath && fileUri.indexOf(rootPath) === 0) root = rootPath || '';
 
     const relative = path.relative(path.join(root, root ? '../' : ''), fileUri);
     const LinkHash = await createHash(`${fileUri}${JSON.stringify([selection.start, selection.end])}`);
     const newLink = new Link(fileUri, root, relative, [selection.start, selection.end], LinkHash);
-
-    await writeTask(taskJson => {
+    await TaskJson.writeTask(taskJson => {
         const { tasks } = taskJson;
         tasks[hash].link[LinkHash] = newLink;
         return taskJson;
@@ -57,7 +56,7 @@ export async function delLink(link: Link) {
     console.log(link);
     if(!link || !link.parent) return;
     const { hash, parent } = link;
-    await writeTask(taskJson => {
+    await TaskJson.writeTask(taskJson => {
         const { tasks } = taskJson;
         delete tasks[parent.hash].link[hash];
         return taskJson;

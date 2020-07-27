@@ -55,7 +55,7 @@ const config: Configuration = {
         extensions: ['.ts', '.js', '.json'],
         alias: {
             "@": path.join(root, 'src'),
-            "root": path.join(root),
+            "@root": path.join(root),
         },
     },
     stats: {

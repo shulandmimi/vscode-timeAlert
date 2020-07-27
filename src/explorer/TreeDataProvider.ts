@@ -1,6 +1,6 @@
 import { TreeDataProvider, TreeItem, EventEmitter } from 'vscode';
 import Link from '@/model/link';
-import { getTaskList } from '@/task';
+import TaskJson from '@/model/taskJson';
 import TaskModel from '@/model/task';
 
 let tasks: { [key: string]: TaskModel[] };
@@ -42,27 +42,29 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
             return title.map(item => key2title[item]);
         }
         if (typeof ele === 'string') return tasks[key2title[ele]];
-        if (ele.hash) return Object.keys(ele.link).map(item => {
-            const newItem = {
-                ...ele.link[item],
-                parent: ele,
-            }
-            return newItem;
-        });
+        if (ele.hash)
+            return Object.keys(ele.link).map(item => {
+                const newItem = {
+                    ...ele.link[item],
+                    parent: ele,
+                };
+                return newItem;
+            });
         return [];
     }
 
     getTreeItem(task: TaskModel | Link | string) {
         if ((task as TaskModel).isTask) {
-            const { title, updateTime, hash, remark, link, finish } = task as TaskModel;
+            const { title, updateTime, hash, remark, link, finish, priority } = task as TaskModel;
             const tree = new TreeItem(title, Object.keys(link).length === 0 ? 0 : 1);
-            tree.tooltip = `最后更新时间: ${new Date(updateTime).toLocaleString()}\n\n${remark}`;
+            tree.tooltip = `${remark}\n\n最后更新时间: ${new Date(updateTime).toLocaleString()}`;
             tree.contextValue = `task ${contextValue[finish]}`;
             tree.id = hash;
+            tree.description = `${priority}`;
             return tree;
         }
 
-        if((task as Link).isLink) {
+        if ((task as Link).isLink) {
             const { file, relative, root, range } = task as Link;
             const tree = new TreeItem(`${relative || root} ${range[0].line}:${range[0].character}`, 0);
             tree.command = {
@@ -75,7 +77,7 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
             return tree;
         }
 
-        const tree = new TreeItem(task as string || '', 1);
+        const tree = new TreeItem((task as string) || '', 1);
         tree.contextValue = 'haveChild';
         return tree;
     }
@@ -86,7 +88,7 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
     }
 
     async refershTask() {
-        tasks = await getTaskList();
+        tasks = await TaskJson.getTaskList();
         return tasks;
     }
 }

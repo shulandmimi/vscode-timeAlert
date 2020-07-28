@@ -114,12 +114,9 @@ export async function modifyTask(task: TaskModel) {
 
     if (typeof value === 'undefined') return;
     let newValue: string | number = value;
-    if (type === 'number') newValue = Number(value);
-
     await TaskJson.writeTask(async taskJson => {
         const { tasks, map } = taskJson;
         const task = tasks[hash];
-
         if (key === 'title') {
             const newHash = await createHash(newValue as string);
             const index = TaskJson.searchIndex(tasks, map, priority, false, hash);
@@ -130,13 +127,11 @@ export async function modifyTask(task: TaskModel) {
         }
         if (key === 'priority') {
             const index = TaskJson.searchIndex(tasks, map, priority, false, hash);
-            const newIndex = TaskJson.searchIndex(tasks, map, newValue as number);
-            if (index === newIndex) {
-                map[index] = hash;
-            } else {
-                map.splice(index, 1);
-                map.splice(newIndex, 0, hash);
-            }
+            map.splice(index, 1);
+            console.log(map, index);
+            let newIndex = TaskJson.searchIndex(tasks, map, newValue as number);
+            map.splice(newIndex, 0, hash);
+            console.log(map, newIndex);
         }
         task.updateTime = Date.now();
         task[key] = newValue;

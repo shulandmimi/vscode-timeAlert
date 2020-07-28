@@ -79,18 +79,23 @@ class TaskJson {
             while (l < r) {
                 mid = Math.floor((r + l) / 2);
                 const task = tasks[arr[mid]];
+                const newPriority = Number(priority);
+                const scopedNewPriority = Number(task.priority);
                 if (isRange) {
                     // 具体相等时，向左搜索
-                    if (task.priority === priority) return searchLeft(mid, isRange, hash);
-                    const prevProiority = tasks[arr[mid - 1]]?.priority ?? NaN;
-                    const nextProiority = tasks[arr[mid + 1]]?.priority ?? NaN;
-                    if ((prevProiority > priority && task.priority < priority) || (mid === 0 && priority > task.priority)) return mid;
-                    if ((task.priority > priority && nextProiority < priority) || (mid === len - 1 && task.priority > priority)) return mid + 1;
+                    if (scopedNewPriority === newPriority) return searchLeft(mid, isRange, hash);
+                    const prevProiority = Number(tasks[arr[mid - 1]]?.priority) ?? NaN;
+                    const nextProiority = Number(tasks[arr[mid + 1]]?.priority) ?? NaN;
+
+                    if (mid === len - 1 && scopedNewPriority > newPriority) return searchLeft(mid);
+                    if (mid === 0 && newPriority > scopedNewPriority) return mid;
+                    if (prevProiority > newPriority && scopedNewPriority < newPriority) return mid;
+                    if (scopedNewPriority > newPriority && nextProiority < newPriority) return mid + 1;
                 } else {
-                    if (task.priority === priority && task.hash === hash) return mid;
+                    if (scopedNewPriority === newPriority && task.hash === hash) return mid;
                 }
 
-                if (task.priority > priority) l = mid;
+                if (scopedNewPriority > newPriority) l = mid;
                 else r = mid;
             }
             return arr.length;
@@ -100,7 +105,7 @@ class TaskJson {
             while (index >= 0) {
                 const scoped = tasks[arr[index]];
                 if (isRange) {
-                    if (scoped.priority && scoped.priority !== priority) return index + 1;
+                    if (Number(scoped.priority) && Number(scoped.priority) !== Number(priority)) return index + 1;
                 } else {
                     if (hash === scoped.hash) return index;
                 }

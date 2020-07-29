@@ -53,7 +53,6 @@ export async function toLink(link: Link) {
 }
 
 export async function delLink(link: Link) {
-    console.log(link);
     if(!link || !link.parent) return;
     const { hash, parent } = link;
     await TaskJson.writeTask(taskJson => {

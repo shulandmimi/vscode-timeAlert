@@ -91,7 +91,7 @@ const modifySelection: ModifySelection = {
         type: 'number',
     },
     priority: {
-        placeHolder: '请输入优先级。Infinity|-Infinity|number',
+        placeHolder: '请输入优先级',
         label: '优先级',
         type: 'number',
     },

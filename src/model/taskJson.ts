@@ -78,23 +78,22 @@ class TaskJson {
             let mid: number;
             while (l < r) {
                 mid = Math.floor((r + l) / 2);
-                const newPriority = priority;
                 const scopedNewPriority = tasks[arr[mid]].priority;
                 if (isRange) {
                     // 具体相等时，向左搜索
-                    if (scopedNewPriority === newPriority) return searchLeft(mid, isRange, hash);
+                    if (scopedNewPriority === priority) return searchLeft(mid, isRange, hash);
                     const prevProiority = tasks[arr[mid - 1]]?.priority ?? NaN;
                     const nextProiority = tasks[arr[mid + 1]]?.priority ?? NaN;
 
-                    if (mid === len - 1 && scopedNewPriority > newPriority) return searchLeft(mid);
-                    if (mid === 0 && newPriority > scopedNewPriority) return mid;
-                    if (prevProiority > newPriority && scopedNewPriority < newPriority) return mid - 1;
-                    if (scopedNewPriority > newPriority && nextProiority < newPriority) return mid + 1;
+                    if (mid === len - 1 && scopedNewPriority > priority) return searchLeft(mid);
+                    if (mid === 0 && priority > scopedNewPriority) return mid;
+                    if (prevProiority > priority && scopedNewPriority < priority) return mid;
+                    if (scopedNewPriority > priority && nextProiority < priority) return mid + 1;
                 } else {
-                    if (scopedNewPriority === newPriority) return searchEqual(mid, <string>hash);
+                    if (scopedNewPriority === priority) return searchEqual(mid, <string>hash);
                 }
 
-                if (scopedNewPriority > newPriority) l = mid;
+                if (scopedNewPriority > priority) l = mid;
                 else r = mid;
             }
             return arr.length;

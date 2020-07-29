@@ -104,7 +104,12 @@ type FormatTypeKeys = {
 
 const formatType: FormatTypeKeys = {
     string: String,
-    number: Number,
+    number: (value: string) => {
+        const v = Number(value);
+        if (isNaN(v)) return 0;
+        if (!isFinite(v)) return 0;
+        return v;
+    },
     boolean: (value: string) => value === 'true',
 };
 

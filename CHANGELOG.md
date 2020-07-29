@@ -1,4 +1,7 @@
-## 0.0.3 (2020-07-29)
+## 0.0.4 (2020-07-29)
+### Bug Fixes
+* 修复任务查询 & 优先级输入转换 ([ed0c6f2](https://github.com/shulandmimi/vscode-timeAlert/commit/ed0c6f2c01a3e6135fc2fa03c6cf10207549bf51))
+
 
 ## 0.0.3 (2020-07-29)
 

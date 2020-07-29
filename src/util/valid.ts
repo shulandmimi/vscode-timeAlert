@@ -18,11 +18,13 @@ const defaultOptions: RawValidOptions = {
     isNull: false,
 };
 
+
 export default function valid(options: ValidOptions): (value: string) => string | undefined {
     const { formatType, ...normalOptions } = normal(options);
-    return (value: string) => {
+    let scopedValue: any;
+    function validHandler(value: string) {
         const newValue = formatType(value);
-        let exitValue = 0;
+        let exitValue;
         exitValue = validBase(newValue, value, normalOptions);
         switch (typeof newValue) {
             case 'string':
@@ -35,8 +37,15 @@ export default function valid(options: ValidOptions): (value: string) => string 
                 exitValue = validNumber(newValue, normalOptions);
                 break;
         }
+        scopedValue = newValue;
         return returnError(exitValue, value, newValue, normalOptions);
+    }
+
+    validHandler.to = () => {
+        return formatType(scopedValue);
     };
+
+    return validHandler;
 }
 
 function validBoolean(value: boolean, options: RawValidOptions) {

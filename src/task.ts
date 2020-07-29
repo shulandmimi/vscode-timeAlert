@@ -31,7 +31,6 @@ export async function addTask() {
                 if (confirm === '取消') return false;
             }
             const index = TaskJson.searchIndex(tasks, map, task.priority);
-            console.log(index);
             map.splice(index, 0, task.hash);
             taskJson.tasks[hash] = task;
             taskJson.total++;
@@ -51,7 +50,6 @@ export async function delTask(task: TaskModel) {
     await TaskJson.writeTask(taskJson => {
         const { tasks, total, map } = taskJson;
         const index = TaskJson.searchIndex(tasks, map, priority, false, hash);
-        console.log(index);
         delete tasks[hash];
         map.splice(index, 1);
         return {
@@ -103,14 +101,18 @@ export async function modifyTask(task: TaskModel) {
 
     const { data, selected, key } = (await select<SelectOptions>(modifySelection, { label: 'label', placeHolder: '请选择一个修改项' })) || {};
     if (!data || !key || !selected) return;
-    let value: string | undefined;
+    let value: string | number | undefined;
 
     const { placeHolder, type = 'string', ...validOptions } = data;
-    value = await window.showInputBox({
-        placeHolder: placeHolder,
-        value: task[key].toString(),
-        validateInput: valid({ ...validOptions, type }),
-    });
+    const validHandler = valid({ ...validOptions, type });
+    // @ts-ignore
+    value = validHandler.to(
+        await window.showInputBox({
+            placeHolder: placeHolder,
+            value: task[key].toString(),
+            validateInput: validHandler,
+        })
+    );
 
     if (typeof value === 'undefined') return;
     let newValue: string | number = value;
@@ -125,13 +127,12 @@ export async function modifyTask(task: TaskModel) {
             task.hash = newHash;
             tasks[newHash] = task;
         }
+
         if (key === 'priority') {
             const index = TaskJson.searchIndex(tasks, map, priority, false, hash);
             map.splice(index, 1);
-            console.log(map, index);
-            let newIndex = TaskJson.searchIndex(tasks, map, newValue as number);
+            let newIndex = TaskJson.searchIndex(tasks, map, <number>newValue);
             map.splice(newIndex, 0, hash);
-            console.log(map, newIndex);
         }
         task.updateTime = Date.now();
         task[key] = newValue;
@@ -178,12 +179,8 @@ export async function showWebview(extensionPath: string, task: TaskModel) {
     const { title } = task;
     TaskWebview.createOrShow(extensionPath);
     const instance = TaskWebview.currentInstance;
-    try {
-        const template = await createTaskTemplate(task);
-        instance?.update(template, `task: ${title}`);
-    } catch (error) {
-        console.log(error, 'error');
-    }
+    const template = await createTaskTemplate(task);
+    instance?.update(template, `task: ${title}`);
 }
 
 Life.on('created', () => {

@@ -6,8 +6,8 @@ import TaskModel from './model/task';
 import TaskJson from './model/taskJson';
 
 import { addNotice } from './notice';
-import createHash from './util/createHash';
-import { getRoot } from './util/util';
+import { createId } from './util/createHash';
+import { resolveTemp } from './util/temp';
 import TaskDataProvider from './explorer/TreeDataProvider';
 import TaskWebview from './explorer/webview';
 import createTaskTemplate from '@root/webview/task/remark';
@@ -21,18 +21,18 @@ export async function addTask() {
         placeHolder: '请输入一个任务',
     });
     if (!res) return;
-    const hash = await createHash(res);
-    const task = new TaskModel(res, minute * 5, '', hash);
+    const id = await createId();
+    const task = new TaskModel(res, minute * 5, '', id);
     try {
         const isWrite = await TaskJson.writeTask(async taskJson => {
             const { tasks, map } = taskJson;
-            if (!!taskJson.tasks[hash]) {
+            if (!!taskJson.tasks[id]) {
                 const confirm = await window.showInformationMessage('任务已经存在，需要覆盖吗', '确定', '取消');
                 if (confirm === '取消') return false;
             }
             const index = TaskJson.searchIndex(tasks, map, task.priority);
-            map.splice(index, 0, task.hash);
-            taskJson.tasks[hash] = task;
+            map.splice(index, 0, task.id);
+            taskJson.tasks[id] = task;
             taskJson.total++;
             return taskJson;
         });
@@ -46,11 +46,11 @@ export async function addTask() {
 }
 
 export async function delTask(task: TaskModel) {
-    const { hash, priority } = task;
+    const { id, priority } = task;
     await TaskJson.writeTask(taskJson => {
         const { tasks, total, map } = taskJson;
-        const index = TaskJson.searchIndex(tasks, map, priority, false, hash);
-        delete tasks[hash];
+        const index = TaskJson.searchIndex(tasks, map, priority, false, id);
+        delete tasks[id];
         map.splice(index, 1);
         return {
             tasks,
@@ -97,7 +97,7 @@ const modifySelection: ModifySelection = {
     },
 };
 export async function modifyTask(task: TaskModel) {
-    const { hash, priority } = task;
+    const { id, priority } = task;
 
     const { data, selected, key } = (await select<SelectOptions>(modifySelection, { label: 'label', placeHolder: '请选择一个修改项' })) || {};
     if (!data || !key || !selected) return;
@@ -118,21 +118,12 @@ export async function modifyTask(task: TaskModel) {
     let newValue: string | number = value;
     await TaskJson.writeTask(async taskJson => {
         const { tasks, map } = taskJson;
-        const task = tasks[hash];
-        if (key === 'title') {
-            const newHash = await createHash(newValue as string);
-            const index = TaskJson.searchIndex(tasks, map, priority, false, hash);
-            map[index] = newHash;
-            delete tasks[hash];
-            task.hash = newHash;
-            tasks[newHash] = task;
-        }
-
+        const task = tasks[id];
         if (key === 'priority') {
-            const index = TaskJson.searchIndex(tasks, map, priority, false, hash);
+            const index = TaskJson.searchIndex(tasks, map, priority, false, id);
             map.splice(index, 1);
             let newIndex = TaskJson.searchIndex(tasks, map, <number>newValue);
-            map.splice(newIndex, 0, hash);
+            map.splice(newIndex, 0, id);
         }
         task.updateTime = Date.now();
         task[key] = newValue;
@@ -142,10 +133,10 @@ export async function modifyTask(task: TaskModel) {
 }
 
 export async function taskFinish(task: TaskModel) {
-    const { hash } = task;
+    const { id } = task;
     await TaskJson.writeTask(taskJson => {
         const { tasks, total, map } = taskJson;
-        const taskItem = tasks[hash];
+        const taskItem = tasks[id];
         taskItem.finish = 0;
         taskItem.finishTime = Date.now();
         return {
@@ -183,7 +174,7 @@ export async function showWebview(extensionPath: string, task: TaskModel) {
     instance?.update(template, `task: ${title}`);
 }
 
-Life.on('created', () => {
-    TaskJson.TaskFilePath = join(getRoot(), 'webview/task.json');
+Life.once('created', () => {
+    TaskJson.TaskFilePath = resolveTemp('task.json');
     addNotice(TaskJson.noticeTask.bind(TaskJson));
 });

@@ -8,7 +8,7 @@ import TaskJson from '@/model/taskJson';
 import createHash from '@/util/createHash';
 
 export async function addLink(task: TaskModel) {
-    const { hash } = task;
+    const { id } = task;
     if (typeof window.activeTextEditor === 'undefined') return window.showErrorMessage('请进入到一个文件或一个文件中的段落');
     const { selection, document } = window.activeTextEditor;
     const { rootPath } = workspace;
@@ -22,7 +22,7 @@ export async function addLink(task: TaskModel) {
     const newLink = new Link(fileUri, root, relative, [selection.start, selection.end], LinkHash);
     await TaskJson.writeTask(taskJson => {
         const { tasks } = taskJson;
-        tasks[hash].link[LinkHash] = newLink;
+        tasks[id].link[LinkHash] = newLink;
         return taskJson;
     });
     await TaskDataProvider.refersh();
@@ -57,7 +57,7 @@ export async function delLink(link: Link) {
     const { hash, parent } = link;
     await TaskJson.writeTask(taskJson => {
         const { tasks } = taskJson;
-        delete tasks[parent.hash].link[hash];
+        delete tasks[parent.id].link[hash];
         return taskJson;
     });
     await TaskDataProvider.refersh();

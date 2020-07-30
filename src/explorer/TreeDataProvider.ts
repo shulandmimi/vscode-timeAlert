@@ -42,7 +42,7 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
             return title.map(item => key2title[item]);
         }
         if (typeof ele === 'string') return tasks[key2title[ele]];
-        if (ele.hash)
+        if (ele.isTask)
             return Object.keys(ele.link).map(item => {
                 const newItem = {
                     ...ele.link[item],
@@ -55,11 +55,11 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
 
     getTreeItem(task: TaskModel | Link | string) {
         if ((task as TaskModel).isTask) {
-            const { title, updateTime, hash, remark, link, finish, priority } = task as TaskModel;
+            const { title, updateTime, id, remark, link, finish, priority } = task as TaskModel;
             const tree = new TreeItem(title, Object.keys(link).length === 0 ? 0 : 1);
             tree.tooltip = `${remark}\n\n最后更新时间: ${new Date(updateTime).toLocaleString()}`;
             tree.contextValue = `task ${contextValue[finish]}`;
-            tree.id = hash;
+            tree.id = id.toString();
             tree.description = `${priority}`;
             return tree;
         }

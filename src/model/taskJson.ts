@@ -63,13 +63,7 @@ class TaskJson {
         }
     }
 
-    async insertTask(task: Task) {
-        // const { tasks, map, total } = await this.readTask();
-        // const { hash } = task;
-        // const index = this.searchRange(tasks, map, task.priority);
-    }
-
-    public searchIndex(tasks: TaskJsonModel['tasks'], arr: string[], priority: number, isRange: boolean = true, hash?: string): number {
+    public searchIndex(tasks: TaskJsonModel['tasks'], arr: TaskJsonModel['map'], priority: number, isRange: boolean = true, id?: number): number {
         if (!arr.length) return 0;
         const len = arr.length;
         function fn() {
@@ -81,7 +75,7 @@ class TaskJson {
                 const scopedNewPriority = tasks[arr[mid]].priority;
                 if (isRange) {
                     // 具体相等时，向左搜索
-                    if (scopedNewPriority === priority) return searchLeft(mid, isRange, hash);
+                    if (scopedNewPriority === priority) return searchLeft(mid, isRange, id);
                     const prevProiority = tasks[arr[mid - 1]]?.priority ?? NaN;
                     const nextProiority = tasks[arr[mid + 1]]?.priority ?? NaN;
 
@@ -90,7 +84,7 @@ class TaskJson {
                     if (prevProiority > priority && scopedNewPriority < priority) return mid;
                     if (scopedNewPriority > priority && nextProiority < priority) return mid + 1;
                 } else {
-                    if (scopedNewPriority === priority) return searchEqual(mid, <string>hash);
+                    if (scopedNewPriority === priority) return searchEqual(mid, <number>id);
                 }
 
                 if (scopedNewPriority > priority) l = mid;
@@ -99,29 +93,29 @@ class TaskJson {
             return arr.length;
         }
 
-        function searchLeft(index: number, isRange: boolean = true, hash?: string) {
+        function searchLeft(index: number, isRange: boolean = true, id?: number) {
             while (index >= 0) {
                 const scoped = tasks[arr[index]];
                 if (isRange) {
                     if (scoped.priority && scoped.priority !== priority) return index + 1;
                 } else {
-                    if (hash === scoped.hash) return index;
+                    if (id === scoped.id) return index;
                 }
                 index--;
             }
             return 0;
         }
 
-        function searchEqual(index: number, hash: string) {
-            if (tasks[arr[index]].hash === hash) return index;
-            let l = index + 1,
-                r = index - 1;
+        function searchEqual(index: number, id: number) {
+            if (tasks[arr[index]].id === id) return index;
+            let l = index - 1,
+                r = index + 1;
             while (l >= 0 || r < len) {
                 const lTask = tasks[arr[l]];
-                if (l >= 0 && lTask.priority === priority && lTask.hash === hash) return l;
+                if (l >= 0 && lTask.priority === priority && lTask.id === id) return l;
                 else l--;
                 const rTask = tasks[arr[r]];
-                if (r < len && rTask.priority === priority && rTask.hash === hash) return r;
+                if (r < len && rTask.priority === priority && rTask.id === id) return r;
                 else r++;
             }
             return index;
@@ -135,7 +129,7 @@ export interface TaskJsonModel {
     tasks: {
         [key: string]: Task;
     };
-    map: string[];
+    map: number[];
 }
 
 export default new TaskJson();

@@ -1,5 +1,6 @@
 import { join } from 'path';
 import { ensureDirSync, readFile, outputFile } from 'fs-extra';
+import config from '@root/config/config';
 import { getRoot } from './util';
 import Life from './life';
 
@@ -18,6 +19,6 @@ export function resolveTemp(file: string) {
 }
 
 Life.once('created', () => {
-    temp = join(getRoot(), 'public/temp');
+    temp = join(getRoot(), config.tempDir);
     ensureDirSync(temp);
 });

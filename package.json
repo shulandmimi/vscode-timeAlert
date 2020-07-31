@@ -2,7 +2,7 @@
   "name": "timealert",
   "displayName": "timeAlert",
   "description": "每隔一定时间提醒所要做的任务",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.46.0"
   },
@@ -140,6 +140,7 @@
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
+    "precompile": "ts-node build/prod.ts",
     "compile": "cross-env NODE_ENV=production ts-node build/webpack.config.ts",
     "lint": "eslint src --ext ts",
     "watch": "cross-env NODE_ENV=development ts-node build/webpack.config.ts",

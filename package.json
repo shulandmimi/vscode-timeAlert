@@ -2,7 +2,7 @@
   "name": "timealert",
   "displayName": "timeAlert",
   "description": "每隔一定时间提醒所要做的任务",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.46.0"
   },

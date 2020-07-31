@@ -140,6 +140,7 @@
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
+    "precompile": "ts-node build/prod.ts",
     "compile": "cross-env NODE_ENV=production ts-node build/webpack.config.ts",
     "lint": "eslint src --ext ts",
     "watch": "cross-env NODE_ENV=development ts-node build/webpack.config.ts",

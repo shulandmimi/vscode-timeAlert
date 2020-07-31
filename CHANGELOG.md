@@ -1,3 +1,7 @@
+## 0.0.5 (2020-07-31)
+### Bug Fixes
+* task 索引改变为自增长ID & 修复searchIndex搜索 ([57027ed](https://github.com/shulandmimi/vscode-timeAlert/commit/57027ed35549ff43db28b0254b17005f97b8a893))
+
 ## 0.0.4 (2020-07-29)
 ### Bug Fixes
 * 修复任务查询 & 优先级输入转换 ([ed0c6f2](https://github.com/shulandmimi/vscode-timeAlert/commit/ed0c6f2c01a3e6135fc2fa03c6cf10207549bf51))

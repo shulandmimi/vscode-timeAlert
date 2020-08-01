@@ -1,14 +1,14 @@
-import { window } from 'vscode';
+import { window, Range, Position, Hover, languages, Uri, TextDocument, TextEditorSelectionChangeEvent } from 'vscode';
 import { ensureFile, outputFile, readFile } from 'fs-extra';
-import TaskWebview from '@/explorer/webview';
-import createTaskTemplate from '@root/webview/task/remark';
-import { extensionContext } from '@/extension';
 import Task from './task';
-import { taskFinish } from '../task';
+import life from '@/util/life';
+import { debounce } from '@/util/util';
 
 const initialTaskJson = JSON.stringify({ tasks: {}, total: 0, map: [] });
 
 class TaskJson {
+    static noticeQueeu: Task[] = [];
+    static isEnd = false;
     TaskFilePath: string = '';
     taskCache?: TaskJsonModel;
     constructor() {}
@@ -41,26 +41,32 @@ class TaskJson {
     }
 
     async noticeTask() {
-        const { tasks } = await this.readTask();
-        const key = Object.keys(tasks);
+        const { tasks, map } = await this.readTask();
         let count = 3;
         let index = 0;
+        const queue: Task[] = (TaskJson.noticeQueeu = []);
         while (count) {
-            const task = tasks[key[index++]];
+            const task = tasks[map[index++]];
             if (!task) break;
             if (task.finish === 0) continue;
-            window.showInformationMessage(task.title, '查看', '已完成').then(async res => {
-                if (!extensionContext) return;
-                if (res === '查看') {
-                    const instance = TaskWebview.createOrShow(extensionContext.extensionPath) || TaskWebview.currentInstance;
-                    if (!instance) return;
-                    instance.update(await createTaskTemplate(task));
-                }
-                if (res === '已完成') {
-                    await taskFinish(task);
-                }
-            });
+            queue.push(task);
+            // window.showInformationMessage(task.title, '查看', '已完成').then(async res => {
+            //     if (!extensionContext) return;
+            //     if (res === '查看') {
+            //         const instance = TaskWebview.createOrShow(extensionContext.extensionPath) || TaskWebview.currentInstance;
+            //         if (!instance) return;
+            //         instance.update(await createTaskTemplate(task));
+            //     }
+            //     if (res === '已完成') {
+            //         await taskFinish(task);
+            //     }
+            // });
         }
+        showDecoration();
+        setTimeout(() => {
+            TaskJson.noticeQueeu.length = 0;
+            hideDecoration();
+        }, 30000);
     }
 
     public searchIndex(tasks: TaskJsonModel['tasks'], arr: TaskJsonModel['map'], priority: number, isRange: boolean = true, id?: number): number {
@@ -133,3 +139,53 @@ export interface TaskJsonModel {
 }
 
 export default new TaskJson();
+
+const decorationType = window.createTextEditorDecorationType({});
+
+const handler = debounce((line: number = 0) => {
+    if (!TaskJson.noticeQueeu.length) return;
+    TaskJson.isEnd = false;
+    const queue = TaskJson.noticeQueeu || [];
+    decoration(`TA: ${queue[0]?.title}`, line);
+});
+
+function showDecoration() {
+    if (!window.activeTextEditor) return;
+    handler(window.activeTextEditor.selection?.start?.line);
+}
+
+function decoration(text: string, line: number) {
+    window.activeTextEditor?.setDecorations(decorationType, [
+        {
+            renderOptions: {
+                after: { contentText: text, color: 'rgb(28, 224, 235)', margin: '0px 0px 0px 3rem' },
+            },
+            range: new Range(new Position(line, Number.MAX_VALUE), new Position(line, Number.MAX_VALUE)),
+        },
+    ]);
+}
+
+function hideDecoration() {
+    TaskJson.isEnd = true;
+    window.activeTextEditor?.setDecorations(decorationType, []);
+}
+
+life.on('created', () => {
+    window.onDidChangeTextEditorSelection((document: TextEditorSelectionChangeEvent) => handler(document.textEditor.selection.start.line));
+    try {
+        languages.registerHoverProvider(
+            {
+                pattern: '**/**',
+            },
+            {
+                provideHover(document: TextDocument, position: Position) {
+                    const text = document.getText(new Range(position.line, 0, position.line, Number.MAX_VALUE));
+                    if (text.length !== position.character || TaskJson.isEnd) return;
+                    return new Hover(['123', '234', '345'].join('\n'));
+                },
+            }
+        );
+    } catch (error) {
+        console.log(error);
+    }
+});

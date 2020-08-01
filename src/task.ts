@@ -176,5 +176,6 @@ export async function showWebview(extensionPath: string, task: TaskModel) {
 
 Life.once('created', () => {
     TaskJson.TaskFilePath = resolveTemp('task.json');
+    TaskJson.noticeTask();
     addNotice(TaskJson.noticeTask.bind(TaskJson));
 });

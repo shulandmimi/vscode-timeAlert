@@ -7,7 +7,6 @@ import { addLink, toLink, delLink } from './link';
 import TaskDataProvider from './explorer/TreeDataProvider';
 import './notice';
 
-
 export let extensionContext: ExtensionContext | undefined;
 export function activate(context: ExtensionContext) {
     extensionContext = context;
@@ -31,4 +30,8 @@ export function activate(context: ExtensionContext) {
     ];
     context.subscriptions.push(...inject);
     Life.emit('mounted');
+}
+
+export function deactived() {
+    Life.emit('unMounted');
 }

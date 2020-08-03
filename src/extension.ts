@@ -12,6 +12,7 @@ export function activate(context: ExtensionContext) {
     extensionContext = context;
     Life.emit('created');
     const inject = [
+        // @ts-ignore
         window.createTreeView('TimeAlert', { treeDataProvider: TaskDataProvider, showCollapseAll: false }),
         commands.registerCommand('timealert.addTask', addTask),
         commands.registerCommand('timealert.delTask', delTask),

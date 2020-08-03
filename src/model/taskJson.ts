@@ -1,7 +1,8 @@
-import { window, Range, Position, Hover, languages, Uri, TextDocument, TextEditorSelectionChangeEvent } from 'vscode';
+import { window, Range, Position, Hover, languages, TextDocument, TextEditorSelectionChangeEvent, workspace } from 'vscode';
 import { ensureFile, outputFile, readFile } from 'fs-extra';
 import Task from './task';
 import life from '@/util/life';
+import workSpaceConfig from '@/util/config';
 import { debounce } from '@/util/util';
 
 const initialTaskJson = JSON.stringify({ tasks: {}, total: 0, map: [] });
@@ -9,6 +10,7 @@ const initialTaskJson = JSON.stringify({ tasks: {}, total: 0, map: [] });
 class TaskJson {
     static noticeQueeu: Task[] = [];
     static isEnd = false;
+    static lineAlert: boolean = workSpaceConfig.lineAlert;
     TaskFilePath: string = '';
     taskCache?: TaskJsonModel;
     constructor() {}
@@ -140,6 +142,7 @@ export interface TaskJsonModel {
 
 export default new TaskJson();
 
+const dispose: Function[] = [];
 const decorationType = window.createTextEditorDecorationType({});
 
 const handler = debounce((line: number = 0) => {
@@ -170,9 +173,10 @@ function hideDecoration() {
     window.activeTextEditor?.setDecorations(decorationType, []);
 }
 
-life.on('created', () => {
-    window.onDidChangeTextEditorSelection((document: TextEditorSelectionChangeEvent) => handler(document.textEditor.selection.start.line));
-    try {
+function startInlineAlert() {
+    dispose.push(
+        window.onDidChangeTextEditorSelection((document: TextEditorSelectionChangeEvent) => handler(document.textEditor.selection.start.line))
+            .dispose,
         languages.registerHoverProvider(
             {
                 pattern: '**/**',
@@ -184,8 +188,19 @@ life.on('created', () => {
                     return new Hover(['123', '234', '345'].join('\n'));
                 },
             }
-        );
-    } catch (error) {
-        console.log(error);
-    }
+        ).dispose
+    );
+}
+
+function disposeHandler() {
+    dispose.forEach(item => item());
+    dispose.length = 0;
+}
+
+function restartInlineAlert() {
+    startInlineAlert();
+}
+
+life.once('created', () => {
+    startInlineAlert();
 });

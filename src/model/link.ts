@@ -1,4 +1,3 @@
-import { Position } from 'vscode';
 import Base from './base';
 import TaskModel from './task';
 

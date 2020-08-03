@@ -21,6 +21,37 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "TimeAlert",
+      "properties": {
+        "timealert.lineAlert": {
+          "type": "boolean",
+          "default": true,
+          "description": "任务时，是否直接在聚焦的行间显示"
+        },
+        "timealert.typeConfig": {
+          "type": "array",
+          "default": [
+            {
+              "label": "完成",
+              "value": 1
+            },
+            {
+              "label": "未完成",
+              "value": 0
+            },
+            {
+              "label": "待定",
+              "value": 2
+            }
+          ],
+          "description": "任务列表标题"
+        },
+        "1": {
+          "type": ""
+        }
+      }
+    },
     "commands": [
       {
         "command": "timealert.addTask",

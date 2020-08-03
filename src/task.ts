@@ -1,5 +1,4 @@
 import { window } from 'vscode';
-import { join } from 'path';
 
 import Life from './util/life';
 import TaskModel from './model/task';

@@ -2,6 +2,8 @@ import { TreeDataProvider, TreeItem, EventEmitter } from 'vscode';
 import Link from '@/model/link';
 import TaskJson from '@/model/taskJson';
 import TaskModel from '@/model/task';
+import Life from '@/util/life';
+import workSpaceConfig from '../util/config';
 
 let tasks: { [key: string]: TaskModel[] };
 
@@ -14,13 +16,17 @@ const reverse = (target: any) => {
     }
     return target;
 };
-const rawTitle = {
-    '1': '未完成',
-    '0': '完成',
-    '2': '待定',
+
+const transform = (config: { label: string; value: number }[]): { [key: string]: number } => {
+    return config.reduce((result, item) => {
+        result[item.label] = item.value;
+        return result;
+    }, {} as any);
 };
 
-const key2title: { [key: string]: string } = reverse(rawTitle);
+let rawTitle: any;
+
+let key2title: { [key: string]: number } = {};
 
 const contextValue = {
     '0': 'finish',
@@ -35,11 +41,13 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
         return this._onDidChangeTreeData.event;
     }
 
+    // @ts-ignore
     async getChildren(ele?: TaskModel | string) {
         if (!ele) {
             if (!tasks) await this.refershTask();
+            console.log(tasks);
             const title = Object.keys(rawTitle);
-            return title.map(item => key2title[item]);
+            return title;
         }
         if (typeof ele === 'string') return tasks[key2title[ele]];
         if (ele.isTask)
@@ -93,4 +101,14 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
     }
 }
 
-export default new TaskDataProvider();
+const taskDataProvider = new TaskDataProvider();
+export default taskDataProvider;
+
+Life.once('created', () => {
+    try {
+        rawTitle = transform(workSpaceConfig.typeConfig as { label: string; value: number }[]);
+        key2title = reverse(rawTitle);
+    } catch (error) {
+        console.log(error);
+    }
+});

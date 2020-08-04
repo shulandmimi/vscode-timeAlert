@@ -12,6 +12,7 @@ import TaskWebview from './explorer/webview';
 import createTaskTemplate from '@root/webview/task/remark';
 import select from './component/select';
 import valid, { ValidOptions } from './util/valid';
+import workSpaceConfig, { TypeConfig } from './util/config';
 
 const minute = 1000 * 60;
 
@@ -63,6 +64,7 @@ export async function delTask(task: TaskModel) {
 interface SelectOptions extends ValidOptions {
     placeHolder: string;
     label: string;
+    children?: { [key: string]: SelectOptions };
 }
 
 interface ModifySelection {
@@ -70,6 +72,7 @@ interface ModifySelection {
     remark: SelectOptions;
     noticeIntervalTime: SelectOptions;
     priority: SelectOptions;
+    finish: SelectOptions;
 }
 const modifySelection: ModifySelection = {
     title: {
@@ -77,6 +80,12 @@ const modifySelection: ModifySelection = {
         label: '标题',
         type: 'string',
         max: 100,
+    },
+    finish: {
+        placeHolder: '请选择要更改的目标状态',
+        label: '更改任务状态',
+        type: 'string',
+        children: {},
     },
     remark: {
         placeHolder: '请输入备注',
@@ -95,6 +104,7 @@ const modifySelection: ModifySelection = {
         type: 'number',
     },
 };
+
 export async function modifyTask(task: TaskModel) {
     const { id, priority } = task;
 
@@ -102,16 +112,24 @@ export async function modifyTask(task: TaskModel) {
     if (!data || !key || !selected) return;
     let value: string | number | undefined;
 
-    const { placeHolder, type = 'string', ...validOptions } = data;
+    const { placeHolder, type = 'string', children = {}, ...validOptions } = data;
     const validHandler = valid({ ...validOptions, type });
-    // @ts-ignore
-    value = validHandler.to(
-        await window.showInputBox({
-            placeHolder: placeHolder,
-            value: task[key].toString(),
-            validateInput: validHandler,
-        })
-    );
+    console.log(children);
+    if (Object.keys(children).length) {
+        console.log(1);
+        const { data, selected, key } = (await select<SelectOptions>(children, { label: 'label', placeHolder: '请选择此任务要改变的状态' })) || {};
+        value = Number(selected);
+        console.log(data, selected, key);
+    } else {
+        // @ts-ignore
+        value = validHandler.to(
+            await window.showInputBox({
+                placeHolder: placeHolder,
+                value: task[key].toString(),
+                validateInput: validHandler,
+            })
+        );
+    }
 
     if (typeof value === 'undefined') return;
     let newValue: string | number = value;
@@ -173,8 +191,23 @@ export async function showWebview(extensionPath: string, task: TaskModel) {
     instance?.update(template, `task: ${title}`);
 }
 
+function resetConfig(config: TypeConfig[]) {
+    modifySelection.finish.children = config.reduce((result: SelectOptions['children'], item) => {
+        // @ts-ignore
+        result[item.value.toString()] = {
+            label: item.label,
+            placeHolder: '请选择一个修改后的状态',
+        };
+        return result;
+    }, {});
+}
+
 Life.once('created', () => {
     TaskJson.TaskFilePath = resolveTemp('task.json');
     TaskJson.noticeTask();
     addNotice(TaskJson.noticeTask.bind(TaskJson));
+    resetConfig(workSpaceConfig.typeConfig as TypeConfig[]);
+    workSpaceConfig.on('typeConfig', (newConfig: TypeConfig[]) => {
+        resetConfig(newConfig);
+    });
 });

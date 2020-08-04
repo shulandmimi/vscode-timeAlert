@@ -1,6 +1,12 @@
 import { EventEmitter } from 'events';
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import Life from './life';
+import { compare, debounce } from './util';
+
+export interface TypeConfig {
+    label: string;
+    value: number;
+}
 
 const prefix = 'timealert';
 const keys = ['lineAlert', 'typeConfig'];
@@ -13,6 +19,20 @@ function getConfig() {
 }
 
 class Config extends EventEmitter {
+    constructor() {
+        super();
+        workspace.onDidChangeConfiguration(
+            debounce(() => {
+                Config._config = workspace.getConfiguration();
+                const newConfig = getConfig();
+                Object.keys(newConfig).forEach(item => {
+                    if (!compare(newConfig[item], this.prevConfig[item])) {
+                        this.emit(item, newConfig[item], this.prevConfig[item]);
+                    }
+                });
+            }, 500)
+        );
+    }
     static _config: WorkspaceConfiguration;
     prevConfig: any;
 
@@ -27,12 +47,6 @@ class Config extends EventEmitter {
 
     public get typeConfig() {
         return this.get('typeConfig');
-    }
-
-    onChange() {
-        workspace.onDidChangeConfiguration(config => {
-
-        });
     }
 }
 const workSpaceConfig = new Config();

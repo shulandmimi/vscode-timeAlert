@@ -18,7 +18,6 @@ const defaultOptions: RawValidOptions = {
     isNull: false,
 };
 
-
 export default function valid(options: ValidOptions): (value: string) => string | undefined {
     const { formatType, ...normalOptions } = normal(options);
     let scopedValue: any;

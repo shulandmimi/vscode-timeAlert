@@ -102,13 +102,18 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
 }
 
 const taskDataProvider = new TaskDataProvider();
+
 export default taskDataProvider;
 
+function startViewTaskList(config?: any) {
+    rawTitle = transform(config || workSpaceConfig.typeConfig as { label: string; value: number }[]);
+    key2title = reverse(rawTitle);
+    taskDataProvider.refersh();
+}
+
 Life.once('created', () => {
-    try {
-        rawTitle = transform(workSpaceConfig.typeConfig as { label: string; value: number }[]);
-        key2title = reverse(rawTitle);
-    } catch (error) {
-        console.log(error);
-    }
+    startViewTaskList();
+    workSpaceConfig.on('typeConfig', (newConfig, oldConfig) => {
+        startViewTaskList(newConfig);
+    });
 });

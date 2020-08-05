@@ -1,4 +1,5 @@
 import { window } from 'vscode';
+import { omit } from 'lodash';
 
 import Life from './util/life';
 import TaskModel from './model/task';
@@ -13,6 +14,7 @@ import createTaskTemplate from '@root/webview/task/remark';
 import select from './component/select';
 import valid, { ValidOptions } from './util/valid';
 import workSpaceConfig, { TypeConfig } from './util/config';
+import Auth from '@/util/auth';
 
 const minute = 1000 * 60;
 
@@ -22,7 +24,7 @@ export async function addTask() {
     });
     if (!res) return;
     const id = await createId();
-    const task = new TaskModel(res, minute * 5, '', id);
+    const task = new TaskModel(res, minute * 5, '', id, workSpaceConfig.initialType);
     try {
         const isWrite = await TaskJson.writeTask(async taskJson => {
             const { tasks, map } = taskJson;
@@ -106,7 +108,7 @@ const modifySelection: ModifySelection = {
 };
 
 export async function modifyTask(task: TaskModel) {
-    const { id, priority } = task;
+    const { id, priority, finish } = task;
 
     const { data, selected, key } = (await select<SelectOptions>(modifySelection, { label: 'label', placeHolder: '请选择一个修改项' })) || {};
     if (!data || !key || !selected) return;
@@ -114,12 +116,13 @@ export async function modifyTask(task: TaskModel) {
 
     const { placeHolder, type = 'string', children = {}, ...validOptions } = data;
     const validHandler = valid({ ...validOptions, type });
-    console.log(children);
     if (Object.keys(children).length) {
-        console.log(1);
-        const { data, selected, key } = (await select<SelectOptions>(children, { label: 'label', placeHolder: '请选择此任务要改变的状态' })) || {};
-        value = Number(selected);
-        console.log(data, selected, key);
+        try {
+            const { key: childKey } = (await select<SelectOptions>(omit(children, finish.toString()), { label: 'label', placeHolder })) || {};
+            value = Number(childKey);
+        } catch (error) {
+            console.log(error, 'error');
+        }
     } else {
         // @ts-ignore
         value = validHandler.to(
@@ -207,7 +210,25 @@ Life.once('created', () => {
     TaskJson.noticeTask();
     addNotice(TaskJson.noticeTask.bind(TaskJson));
     resetConfig(workSpaceConfig.typeConfig as TypeConfig[]);
+});
+
+Life.once('beforeCreate', () => {
     workSpaceConfig.on('typeConfig', (newConfig: TypeConfig[]) => {
         resetConfig(newConfig);
+        if (!Object.keys(newConfig).some(item => newConfig[Number(item)].value === workSpaceConfig.initialType)) {
+            const config = newConfig.find(item => typeof item.value === 'number');
+            if (typeof config === 'undefined') return Auth.setIsRun(true);
+            checkInitialType(workSpaceConfig.initialType, config.value);
+        }
+        if (Auth.isNextRun) Auth.setIsRun(false);
     });
+
+    const checkInitialType = (newInitialType: number, oldNewInitialType: number) => {
+        const typeConfig = workSpaceConfig.typeConfig;
+        if (!typeConfig.some(({ value }) => newInitialType === value)) {
+            window.showErrorMessage(`initialType不能更改为 "${newInitialType}" 它为在typeConfig中声明，将为您修改会 "${oldNewInitialType}"`);
+            workSpaceConfig._config.update('timealert.initialType', oldNewInitialType, true, true);
+        }
+    };
+    workSpaceConfig.on('initialType', checkInitialType);
 });

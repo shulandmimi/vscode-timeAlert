@@ -1,11 +1,12 @@
 import Life from './util/life';
-Life.emit('createBefore');
-
 import { WebviewPanel, window, commands, ExtensionContext } from 'vscode';
 import { addTask, delTask, modifyTask, taskFinish, showWebview } from './task';
 import { addLink, toLink, delLink } from './link';
 import TaskDataProvider from './explorer/TreeDataProvider';
+import { auth } from './util/auth';
 import './notice';
+
+Life.emit('beforeCreate');
 
 export let extensionContext: ExtensionContext | undefined;
 export function activate(context: ExtensionContext) {
@@ -14,7 +15,7 @@ export function activate(context: ExtensionContext) {
     const inject = [
         // @ts-ignore
         window.createTreeView('TimeAlert', { treeDataProvider: TaskDataProvider, showCollapseAll: false }),
-        commands.registerCommand('timealert.addTask', addTask),
+        commands.registerCommand('timealert.addTask', auth(addTask)),
         commands.registerCommand('timealert.delTask', delTask),
         commands.registerCommand('timealert.modifyTask', modifyTask),
         commands.registerCommand('timealert.taskFinish', taskFinish),

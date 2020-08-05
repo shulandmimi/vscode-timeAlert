@@ -9,7 +9,7 @@ export interface TypeConfig {
 }
 
 const prefix = 'timealert';
-const keys = ['lineAlert', 'typeConfig'];
+const keys = ['lineAlert', 'typeConfig', 'initialType'];
 
 function getConfig() {
     return keys.reduce((result: any, key: string) => {
@@ -21,24 +21,25 @@ function getConfig() {
 class Config extends EventEmitter {
     constructor() {
         super();
+        const that = this;
         workspace.onDidChangeConfiguration(
             debounce(() => {
-                Config._config = workspace.getConfiguration();
+                that._config = workspace.getConfiguration();
                 const newConfig = getConfig();
                 Object.keys(newConfig).forEach(item => {
-                    if (!compare(newConfig[item], this.prevConfig[item])) {
-                        this.emit(item, newConfig[item], this.prevConfig[item]);
+                    if (!compare(newConfig[item], that.prevConfig[item])) {
+                        that.emit(item, newConfig[item], that.prevConfig[item], newConfig, this.prevConfig);
                     }
                 });
+                this.prevConfig = newConfig;
             }, 500)
         );
     }
-    static _config: WorkspaceConfiguration;
+    _config: WorkspaceConfiguration = workspace.getConfiguration();
     prevConfig: any;
 
     public get(key: string) {
-        if (!Config._config) return false;
-        return Config._config.get(`${prefix}.${key}`);
+        return this._config.get(`${prefix}.${key}`);
     }
 
     public get lineAlert(): boolean {
@@ -46,14 +47,17 @@ class Config extends EventEmitter {
     }
 
     public get typeConfig() {
-        return this.get('typeConfig');
+        return this.get('typeConfig') as TypeConfig[];
+    }
+
+    public get initialType() {
+        return this.get('initialType') as number;
     }
 }
 const workSpaceConfig = new Config();
 
 Life.once('created', () => {
     try {
-        Config._config = workspace.getConfiguration();
         workSpaceConfig.prevConfig = getConfig();
     } catch (error) {
         console.log(error, 'error');

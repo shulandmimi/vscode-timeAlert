@@ -28,12 +28,6 @@ let rawTitle: any;
 
 let key2title: { [key: string]: number } = {};
 
-const contextValue = {
-    '0': 'finish',
-    '1': 'undone',
-    '2': 'delay',
-};
-
 class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
     protected _onDidChangeTreeData = new EventEmitter<TaskModel | Link | string | undefined>();
 
@@ -66,7 +60,7 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
             const { title, updateTime, id, remark, link, finish, priority } = task as TaskModel;
             const tree = new TreeItem(title, Object.keys(link).length === 0 ? 0 : 1);
             tree.tooltip = `${remark}\n\n最后更新时间: ${new Date(updateTime).toLocaleString()}`;
-            tree.contextValue = `task ${contextValue[finish]}`;
+            tree.contextValue = `task inline`;
             tree.id = id.toString();
             tree.description = `${priority}`;
             return tree;
@@ -86,7 +80,7 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
         }
 
         const tree = new TreeItem((task as string) || '', 1);
-        tree.contextValue = 'haveChild';
+        tree.contextValue = 'parent';
         return tree;
     }
 

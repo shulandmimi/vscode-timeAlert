@@ -1,3 +1,13 @@
+## [0.0.6](https://github.com/shulandmimi/vscode-timeAlert/compare/v0.0.5...v0.0.6) (2020-08-10)
+
+### Features
+
+* 配置校验 & 完善任务自定义配置 ([4e28e9f](https://github.com/shulandmimi/vscode-timeAlert/commit/4e28e9f174969eaf3cc6a1805e0aa2fadd251ebf))
+* 修改至任意状态 ([22dee6c](https://github.com/shulandmimi/vscode-timeAlert/commit/22dee6c875fdbc0d411b379d6bdb3aea5c9dfdb4))
+* 行内提示 & 自定义任务列 ([4bc48aa](https://github.com/shulandmimi/vscode-timeAlert/commit/4bc48aaf964f91be255d08945480e18250eb6c37))
+* 增加任务提示方式：直接在行间提示 ([e9d027d](https://github.com/shulandmimi/vscode-timeAlert/commit/e9d027d5c68a3df1ac78f97c46de04be8633a63a))
+
+
 ## 0.0.5 (2020-07-31)
 
 ### Bug Fixes

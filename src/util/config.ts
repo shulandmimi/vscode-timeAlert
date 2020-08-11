@@ -8,8 +8,10 @@ export interface TypeConfig {
     value: number;
 }
 
+export type LineAlertColor = string[] | string;
+
 const prefix = 'timealert';
-const keys = ['lineAlert', 'typeConfig', 'initialType'];
+const keys = ['lineAlert', 'lineAlertColor', 'typeConfig', 'initialType'];
 
 function getConfig() {
     return keys.reduce((result: any, key: string) => {
@@ -52,6 +54,10 @@ class Config extends EventEmitter {
 
     public get initialType() {
         return this.get('initialType') as number;
+    }
+
+    public get lineAlertColor() {
+        return this.get('lineAlertColor') as LineAlertColor;
     }
 }
 const workSpaceConfig = new Config();

@@ -218,7 +218,7 @@ Life.once('beforeCreate', () => {
         if (!Object.keys(newConfig).some(item => newConfig[Number(item)].value === workSpaceConfig.initialType)) {
             const config = newConfig.find(item => typeof item.value === 'number');
             if (typeof config === 'undefined') return Auth.setIsRun(true);
-            checkInitialType(workSpaceConfig.initialType, config.value);
+            return checkInitialType(workSpaceConfig.initialType, config.value);
         }
         if (Auth.isNextRun) Auth.setIsRun(false);
     });

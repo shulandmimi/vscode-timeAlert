@@ -13,7 +13,7 @@ class Auth extends EventEmitter {
     auth(fn: Function, text?: string) {
         const _this = this;
         return function (...arg: any[]) {
-            if (_this.isNextRun) return _this.showError(text);
+            if (!_this.isNextRun) return _this.showError(text);
             // @ts-ignore
             fn.apply(this, arg);
         };

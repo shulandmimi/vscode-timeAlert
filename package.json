@@ -29,6 +29,14 @@
           "default": true,
           "description": "任务时，是否直接在聚焦的行间显示"
         },
+        "timealert.lineAlertColor": {
+          "type": [
+            "string",
+            "array"
+          ],
+          "default": "rgb(28, 224, 235)",
+          "description": "行间提醒时，显示的颜色"
+        },
         "timealert.typeConfig": {
           "type": "array",
           "default": [

@@ -1,8 +1,9 @@
-import { window, Range, Position, Hover, languages, TextDocument, TextEditorSelectionChangeEvent, workspace } from 'vscode';
+import { window, Range, Position, Hover, languages, TextDocument, TextEditorSelectionChangeEvent } from 'vscode';
 import { ensureFile, outputFile, readFile } from 'fs-extra';
+import { isArray, isBoolean, isString } from 'lodash';
 import Task from './task';
 import life from '@/util/life';
-import workSpaceConfig from '@/util/config';
+import workSpaceConfig, { LineAlertColor } from '@/util/config';
 import { debounce } from '@/util/util';
 
 const initialTaskJson = JSON.stringify({ tasks: {}, total: 0, map: [] });
@@ -44,6 +45,7 @@ class TaskJson {
 
     async noticeTask() {
         const { tasks, map } = await this.readTask();
+        restartInlineAlert();
         let count = 3;
         let index = 0;
         const queue: Task[] = (TaskJson.noticeQueeu = []);
@@ -144,6 +146,7 @@ export default new TaskJson();
 
 const dispose: Function[] = [];
 const decorationType = window.createTextEditorDecorationType({});
+let lineAlertColor: ReturnType<typeof normalLineAlertColor>;
 
 const handler = debounce((line: number = 0) => {
     if (!TaskJson.noticeQueeu.length) return;
@@ -161,7 +164,7 @@ function decoration(text: string, line: number) {
     window.activeTextEditor?.setDecorations(decorationType, [
         {
             renderOptions: {
-                after: { contentText: text, color: 'rgb(28, 224, 235)', margin: '0px 0px 0px 3rem' },
+                after: { contentText: text, color: lineAlertColor.get(), margin: '0px 0px 0px 3rem' },
             },
             range: new Range(new Position(line, Number.MAX_VALUE), new Position(line, Number.MAX_VALUE)),
         },
@@ -171,6 +174,7 @@ function decoration(text: string, line: number) {
 function hideDecoration() {
     TaskJson.isEnd = true;
     window.activeTextEditor?.setDecorations(decorationType, []);
+    disposeHandler();
 }
 
 function startInlineAlert() {
@@ -185,7 +189,7 @@ function startInlineAlert() {
                 provideHover(document: TextDocument, position: Position) {
                     const text = document.getText(new Range(position.line, 0, position.line, Number.MAX_VALUE));
                     if (text.length !== position.character || TaskJson.isEnd) return;
-                    return new Hover(['123', '234', '345'].join('\n'));
+                    return new Hover('');
                 },
             }
         ).dispose
@@ -199,8 +203,31 @@ function disposeHandler() {
 
 function restartInlineAlert() {
     startInlineAlert();
+    showDecoration();
+}
+
+function normalLineAlertColor(rawColor: LineAlertColor) {
+    let index = 0;
+    function get() {
+        if (isArray(rawColor)) {
+            const len = rawColor.length;
+            let i = (len + index++) % len;
+            return rawColor[i];
+        } else {
+            return rawColor;
+        }
+    }
+
+    return {
+        get() {
+            return get();
+        },
+        getRaw() {
+            return rawColor;
+        },
+    };
 }
 
 life.once('created', () => {
-    startInlineAlert();
+    lineAlertColor = normalLineAlertColor(workSpaceConfig.lineAlertColor);
 });

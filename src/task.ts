@@ -1,5 +1,5 @@
 import { window } from 'vscode';
-import { omit } from 'lodash';
+import { omit, isFinite } from 'lodash';
 
 import Life from './util/life';
 import TaskModel from './model/task';
@@ -119,7 +119,7 @@ export async function modifyTask(task: TaskModel) {
     if (Object.keys(children).length) {
         try {
             const { key: childKey } = (await select<SelectOptions>(omit(children, finish.toString()), { label: 'label', placeHolder })) || {};
-            value = Number(childKey);
+            value = isFinite(Number(childKey)) ? Number(childKey) : undefined;
         } catch (error) {
             console.log(error, 'error');
         }
@@ -133,7 +133,6 @@ export async function modifyTask(task: TaskModel) {
             })
         );
     }
-
     if (typeof value === 'undefined') return;
     let newValue: string | number = value;
     await TaskJson.writeTask(async taskJson => {

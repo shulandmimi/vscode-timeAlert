@@ -39,7 +39,6 @@ class TaskDataProvider implements TreeDataProvider<TaskModel | Link | string> {
     async getChildren(ele?: TaskModel | string) {
         if (!ele) {
             if (!tasks) await this.refershTask();
-            console.log(tasks);
             const title = Object.keys(rawTitle);
             return title;
         }

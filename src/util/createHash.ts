@@ -17,7 +17,7 @@ export default async function createHash(str: string): Promise<string> {
 
 export async function createId() {
     let newId = id++;
-    await writeTempFile(IdTempFile, newId);
+    await writeTempFile(IdTempFile, newId + 1);
     return newId;
 }
 

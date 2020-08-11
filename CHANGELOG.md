@@ -1,3 +1,10 @@
+## [0.0.7](https://github.com/shulandmimi/vscode-timeAlert/compare/v0.0.6...v0.0.7) (2020-08-11)
+
+### Features
+
+* 添加颜色 & 修改权限校验bug ([d56ef20](https://github.com/shulandmimi/vscode-timeAlert/commit/d56ef20f8d4533603f88ba1378a727be096f6b90))
+
+
 ## [0.0.6](https://github.com/shulandmimi/vscode-timeAlert/compare/v0.0.5...v0.0.6) (2020-08-10)
 
 ### Features

@@ -51,6 +51,7 @@ PS: (1) 代表要添加到 setting 作为用户可自定义的
 -   [x] 任务通知
     -   [x] 任务提示种类增加
         -   [x] 行间提示，直接影响到写代码(1)
+            -   [x] 显示时颜色的配置
     -   [ ] 完善任务通知规则
         -   [ ] 任务提示间隔
 
@@ -74,4 +75,42 @@ PS: (1) 代表要添加到 setting 作为用户可自定义的
         "key": 3
     }
 ]
+```
+
+```json
+{
+    "timealert.lineAlert": {
+        "type": "boolean",
+        "default": true,
+        "description": "任务时，是否直接在聚焦的行间显示"
+    },
+    "timealert.lineAlertColor": {
+        "type": ["string", "array"],
+        "default": "rgb(28, 224, 235)",
+        "description": "行间提醒时，显示的颜色"
+    },
+    "timealert.typeConfig": {
+        "type": "array",
+        "default": [
+            {
+                "label": "完成",
+                "value": 1
+            },
+            {
+                "label": "未完成",
+                "value": 0
+            },
+            {
+                "label": "待定",
+                "value": 2
+            }
+        ],
+        "description": "任务列表标题"
+    },
+    "timealert.initialType": {
+        "type": "number",
+        "description": "任务初始化时，所在的类型中",
+        "default": 0
+    }
+}
 ```

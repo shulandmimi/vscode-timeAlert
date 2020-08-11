@@ -1,3 +1,10 @@
+## [0.0.8](https://github.com/shulandmimi/vscode-timeAlert/compare/v0.0.7...v0.0.8) (2020-08-11)
+
+### Bug Fixes
+
+* 在修改任务类型取消式，任务类型变为null ([f79b063](https://github.com/shulandmimi/vscode-timeAlert/commit/f79b06376fec30b6978236a8bbaf8d97918ea151))
+
+
 ## [0.0.7](https://github.com/shulandmimi/vscode-timeAlert/compare/v0.0.6...v0.0.7) (2020-08-11)
 
 ### Features
